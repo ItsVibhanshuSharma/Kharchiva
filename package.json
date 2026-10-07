@@ -1,0 +1,19 @@
+{
+  "name": "kharchiva",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/mobile", "apps/server"],
+  "engines": { "node": ">=24.15.0" },
+  "scripts": {
+    "start:mobile": "npm run start --workspace @kharchiva/mobile",
+    "start:api": "npm run start:dev --workspace @kharchiva/server",
+    "start:worker": "npm run start:worker:dev --workspace @kharchiva/server",
+    "build:server": "npm run build --workspace @kharchiva/server",
+    "test:mobile": "npm run test --workspace @kharchiva/mobile -- --runInBand",
+    "test:server": "npm run test --workspace @kharchiva/server -- --runInBand",
+    "test:e2e": "npm run test:e2e --workspace @kharchiva/server -- --runInBand",
+    "lint": "npm run lint --workspaces --if-present",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": { "prettier": "^3.4.2" }
+}

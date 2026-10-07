@@ -1,0 +1,9 @@
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  plugins: [
+    [
+      'transform-inline-environment-variables',
+      { include: ['MOBILE_API_BASE_URL'] },
+    ],
+  ],
+};
