@@ -10,6 +10,7 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
   private readonly tables: Record<'expenses' | 'incomes', Row[]> = {expenses: [], incomes: []};
   /** Simple list tables, handled generically: insert with named columns, select active rows, update by id. */
   private readonly lists: Record<string, Row[]> = {custom_categories: [], payment_sources: [], budgets: []};
+  private readonly days = new Map<string, Row>();
 
   async execute(query: string, params: Scalar[] = []): Promise<QueryResult> {
     this.statements.push({query, params});
@@ -22,6 +23,18 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
     if (lower.startsWith('insert into schema_migrations')) {
       this.versions.add(Number(params[0]));
       return this.result([], 1);
+    }
+    if (lower.startsWith('insert or replace into day_status')) {
+      const [date, status, createdAt, updatedAt] = params;
+      this.days.set(String(date), {date, status, createdAt, updatedAt});
+      return this.result([], 1);
+    }
+    if (lower.startsWith('delete from day_status where date = ?')) {
+      return this.result([], this.days.delete(String(params[0])) ? 1 : 0);
+    }
+    if (lower.startsWith('select * from day_status where date >= ? and date <= ?')) {
+      const [from, to] = params.map(String);
+      return this.result([...this.days.values()].filter(row => String(row.date) >= from && String(row.date) <= to).map(row => ({...row})));
     }
     const listInsert = /^insert into (\w+) \(([^)]+)\) values \(([^)]+)\);?$/i.exec(normalized);
     if (listInsert && listInsert[1].toLowerCase() in this.lists) {

@@ -30,7 +30,8 @@ const CONTENT_CLEARANCE_SPACING = spacing.xl;
 
 type AddExpenseScreenProps = {
   /** `editId` switches the form into edit mode for an existing entry of `type`. */
-  route?: { params?: { type?: EntryType; editId?: string } };
+  /** `date` (YYYY-MM-DD) pre-fills the day, e.g. from catch-up. */
+  route?: { params?: { type?: EntryType; editId?: string; date?: string } };
 };
 
 export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
@@ -56,7 +57,11 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const [sourceName, setSourceName] = useState('');
   const [paymentSource, setPaymentSource] = useState(paymentMethods[0]);
   const [merchant, setMerchant] = useState('');
-  const [expenseDate, setExpenseDate] = useState(() => dateForExpenseInput(new Date()));
+  const [expenseDate, setExpenseDate] = useState(() => {
+    const today = dateForExpenseInput(new Date());
+    const preset = route?.params?.date;
+    return preset && /^\d{4}-\d{2}-\d{2}$/.test(preset) && preset <= today ? preset : today;
+  });
   const [note, setNote] = useState('');
   const [validationError, setValidationError] = useState('');
   const today = dateForExpenseInput(new Date());

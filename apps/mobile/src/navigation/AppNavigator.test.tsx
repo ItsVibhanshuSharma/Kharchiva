@@ -36,6 +36,7 @@ describe('App navigator foundation', () => {
       'Statement',
       'Budget',
       'ManageLists',
+      'Reminder',
     ]);
   });
 

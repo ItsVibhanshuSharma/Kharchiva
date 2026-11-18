@@ -117,4 +117,16 @@ export const migrations = [
       );
     `);
   }),
+  // Days the user explicitly said "nothing spent" (PRD §21). A day with no entries
+  // and no row here is MISSING, never assumed to be zero spending.
+  createMigration(5, async (database) => {
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS day_status (
+        date TEXT PRIMARY KEY NOT NULL CHECK (length(date) = 10),
+        status TEXT NOT NULL CHECK (status IN ('NO_EXPENSE')),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );
+    `);
+  }),
 ];

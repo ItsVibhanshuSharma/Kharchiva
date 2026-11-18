@@ -7,8 +7,10 @@ import { AppNavigator } from '../navigation/AppNavigator';
 import { CelebrationOverlay } from '../components/CelebrationOverlay';
 import { SnackbarHost } from '../components/SnackbarHost';
 import { loadPrivacy } from '../features/privacy/privacy';
+import { useForegroundTasks } from './useForegroundTasks';
 
 export function AppRoot() {
+  useForegroundTasks();
   useEffect(() => {
     loadPrivacy();
   }, []);

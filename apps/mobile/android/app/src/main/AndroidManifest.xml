@@ -3,6 +3,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Voice entry: mic is used only after the user taps the mic button. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Daily reminder: show the notification (Android 13+) and re-arm it after a reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Auto-detect money SMS: receive only. READ_SMS is deliberately not requested. -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <!-- Android 11+: lets the app find the system speech recognition service. -->
@@ -66,6 +69,13 @@
         android:permission="android.permission.BROADCAST_SMS">
         <intent-filter>
           <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+        </intent-filter>
+      </receiver>
+      <receiver android:name=".ReminderReceiver" android:exported="false" />
+      <receiver android:name=".ReminderBootReceiver" android:exported="true">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
         </intent-filter>
       </receiver>
     </application>

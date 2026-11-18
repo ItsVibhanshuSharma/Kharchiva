@@ -14,6 +14,7 @@ import { askForSmsPermission } from '../../features/sms/smsInbox';
 import { useSmsDrafts } from '../../features/sms/useSmsDrafts';
 import { VoiceEntrySheet } from '../../features/voice/VoiceEntrySheet';
 import { BudgetHomeCard } from '../../features/budget/BudgetHomeCard';
+import { CatchUpCard } from '../../features/catchup/CatchUpCard';
 import { useCatalog } from '../../features/catalog/catalogStore';
 import type { LedgerTransaction } from '../../database/models/transaction';
 import { getTransactionRepository } from '../../database/transactionRepository';
@@ -287,6 +288,8 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
+        {/* Shows only when recent days have no entry and no "nothing spent" mark. */}
+        <CatchUpCard onAdd={date => navigation.navigate('AddExpense', { type: 'expense', date })} refreshKey={refreshKey} />
         {/* Budgets are opt-in: this shows only after the user creates one. */}
         {!isYear && isSameMonth(month, thisMonth) ? (
           <BudgetHomeCard

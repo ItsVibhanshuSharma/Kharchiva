@@ -8,13 +8,14 @@ export type RootStackParamList = {
   Home: undefined;
   Transactions: undefined;
   /** Pass `editId` to edit an existing entry of `type` instead of adding one. */
-  AddExpense: { type?: EntryType; editId?: string } | undefined;
+  AddExpense: { type?: EntryType; editId?: string; date?: string } | undefined;
   Profile: undefined;
   Mpin: undefined;
   /** Optional initial range, YYYY-MM-DD; defaults to this month. */
   Statement: { from?: string; to?: string } | undefined;
   Budget: undefined;
   ManageLists: undefined;
+  Reminder: undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 
@@ -32,4 +33,5 @@ export const ACTIVE_ROUTES = [
   'Statement',
   'Budget',
   'ManageLists',
+  'Reminder',
 ] as const satisfies readonly RootStackRouteName[];
