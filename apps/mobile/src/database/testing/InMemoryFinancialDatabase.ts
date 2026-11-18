@@ -9,7 +9,7 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
   private readonly versions = new Set<number>();
   private readonly tables: Record<'expenses' | 'incomes', Row[]> = {expenses: [], incomes: []};
   /** Simple list tables, handled generically: insert with named columns, select active rows, update by id. */
-  private readonly lists: Record<string, Row[]> = {custom_categories: [], payment_sources: [], budgets: []};
+  private readonly lists: Record<string, Row[]> = {custom_categories: [], payment_sources: [], budgets: [], recurring_items: []};
   private readonly days = new Map<string, Row>();
 
   async execute(query: string, params: Scalar[] = []): Promise<QueryResult> {

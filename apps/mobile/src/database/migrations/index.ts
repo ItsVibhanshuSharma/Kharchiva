@@ -129,4 +129,25 @@ export const migrations = [
       );
     `);
   }),
+  // Rent, Netflix, EMI, salary… The schedule lives here; each generated entry is a
+  // normal expense/income whose clientId is "rec:<id>:<date>", so it is made once.
+  createMigration(6, async (database) => {
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS recurring_items (
+        id TEXT PRIMARY KEY NOT NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('expense', 'income')),
+        name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+        amountPaise INTEGER NOT NULL CHECK (amountPaise > 0),
+        category TEXT NOT NULL CHECK (length(trim(category)) > 0),
+        paymentSource TEXT,
+        frequency TEXT NOT NULL CHECK (frequency IN ('WEEKLY', 'MONTHLY', 'YEARLY')),
+        startDate TEXT NOT NULL CHECK (length(startDate) = 10),
+        nextDate TEXT NOT NULL CHECK (length(nextDate) = 10),
+        autoAdd INTEGER NOT NULL DEFAULT 1 CHECK (autoAdd IN (0, 1)),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+  }),
 ];

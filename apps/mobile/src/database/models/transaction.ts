@@ -32,6 +32,8 @@ export type CreateExpenseInput = {
   category: string;
   /** How the entry was captured. Defaults to MANUAL. */
   source?: ExpenseRecord['source'];
+  /** Stable id for idempotent creates; a second create with it returns the first row. */
+  clientId?: string;
   occurredAt?: string;
   merchant?: string | null;
   paymentSource?: string | null;
@@ -41,6 +43,7 @@ export type CreateExpenseInput = {
 export type CreateIncomeInput = {
   amountPaise: number;
   category: string;
+  clientId?: string;
   occurredAt?: string;
   sourceName?: string | null;
   note?: string | null;

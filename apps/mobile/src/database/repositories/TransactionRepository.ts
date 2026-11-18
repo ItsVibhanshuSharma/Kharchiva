@@ -193,7 +193,12 @@ export class SQLiteTransactionRepository extends LocalRepository implements Tran
   async createExpense(input: CreateExpenseInput): Promise<ExpenseRecord> {
     requireAmount(input.amountPaise);
     requireCategory(input.category);
-    const id = this.idFactory();
+    // A caller-chosen clientId makes the create idempotent (e.g. one row per recurring occurrence).
+    if (input.clientId) {
+      const existing = await this.getById(input.clientId, 'expense');
+      if (existing?.type === 'expense') return existing;
+    }
+    const id = input.clientId ?? this.idFactory();
     const now = this.now().toISOString();
     const expenseDate = normalizeDate(input.occurredAt, this.now);
     const source = input.source ?? 'MANUAL';
@@ -214,7 +219,11 @@ export class SQLiteTransactionRepository extends LocalRepository implements Tran
   async createIncome(input: CreateIncomeInput): Promise<IncomeRecord> {
     requireAmount(input.amountPaise);
     requireCategory(input.category);
-    const id = this.idFactory();
+    if (input.clientId) {
+      const existing = await this.getById(input.clientId, 'income');
+      if (existing?.type === 'income') return existing;
+    }
+    const id = input.clientId ?? this.idFactory();
     const now = this.now().toISOString();
     const incomeDate = normalizeDate(input.occurredAt, this.now);
     await this.query(`

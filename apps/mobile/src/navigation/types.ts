@@ -16,6 +16,7 @@ export type RootStackParamList = {
   Budget: undefined;
   ManageLists: undefined;
   Reminder: undefined;
+  Recurring: undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 
@@ -34,4 +35,5 @@ export const ACTIVE_ROUTES = [
   'Budget',
   'ManageLists',
   'Reminder',
+  'Recurring',
 ] as const satisfies readonly RootStackRouteName[];

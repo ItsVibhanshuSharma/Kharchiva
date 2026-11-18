@@ -12,6 +12,7 @@ import { HomeScreen } from '../screens/home/HomeScreen';
 import { BudgetScreen } from '../screens/budget/BudgetScreen';
 import { ManageListsScreen } from '../screens/settings/ManageListsScreen';
 import { ReminderScreen } from '../screens/settings/ReminderScreen';
+import { RecurringScreen } from '../screens/recurring/RecurringScreen';
 import { StatementScreen } from '../screens/statement/StatementScreen';
 import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { RootStackParamList } from './types';
@@ -75,6 +76,7 @@ export function AppNavigator() {
         <Stack.Screen name="Budget" component={BudgetScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ManageLists" component={ManageListsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Reminder" component={ReminderScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Recurring" component={RecurringScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAVIGATION_CONTENT_INSET, BottomNavigation } from '../../components/BottomNavigation';
 import { Screen } from '../../components/Screen';
 import { Text } from '../../components/Text';
-import { Bell, ChevronRight, EyeOff, FileText, KeyRound, LogOut, Pencil, Smartphone, Tags, Target } from '../../components/icons';
+import { Bell, ChevronRight, EyeOff, FileText, KeyRound, LogOut, Pencil, Repeat, Smartphone, Tags, Target } from '../../components/icons';
 import { useMpinEnabled } from '../../features/mpin/mpinStatus';
 import { setPrivacyOn, usePrivacy } from '../../features/privacy/privacy';
 import { appTabItems, navigateToTab } from '../../navigation/appTabs';
@@ -101,6 +101,21 @@ export function ProfileScreen() {
           <View style={styles.identity}>
             <Text variant="label" style={styles.rowTitle}>Roz ka reminder</Text>
             <Text variant="caption">Raat ko ek baar "aaj koi kharcha hua?"</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Recurring entries"
+          onPress={() => navigation.navigate('Recurring')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Repeat color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>Har mahine wale (Rent, EMI…)</Text>
+            <Text variant="caption">Apne aap jud jaayein, ya yaad dila dein</Text>
           </View>
           <ChevronRight color={colors.textMuted} size={20} />
         </Pressable>
