@@ -16,6 +16,7 @@ import { VoiceEntrySheet } from '../../features/voice/VoiceEntrySheet';
 import { BudgetHomeCard } from '../../features/budget/BudgetHomeCard';
 import { CatchUpCard } from '../../features/catchup/CatchUpCard';
 import { RecurringDueCard } from '../../features/recurring/RecurringDueCard';
+import { CategorySpendCard } from '../../features/insights/CategorySpendCard';
 import { useCatalog } from '../../features/catalog/catalogStore';
 import type { LedgerTransaction } from '../../database/models/transaction';
 import { getTransactionRepository } from '../../database/transactionRepository';
@@ -369,6 +370,8 @@ export function HomeScreen() {
             ))}
           </View>
         )}
+        {/* "Kahan gaya paisa": hidden until the period has an expense. */}
+        {!loading ? <CategorySpendCard transactions={transactions} /> : null}
       </ScrollView>
       <VoiceEntrySheet
         onClose={() => setVoiceOpen(false)}
