@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KharchivaMobile</string>
+    <string name="app_name">Kharchiva</string>
     <string name="quick_add_label">Kharchiva quick add</string>
     <string name="tile_label">Add expense</string>
     <string name="widget_description">Add an expense or income without opening the app</string>

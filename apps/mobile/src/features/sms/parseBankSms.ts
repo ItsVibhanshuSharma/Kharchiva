@@ -30,9 +30,18 @@ export type SmsDraft = {
 };
 
 const SKIP_RE =
-  /\botp\b|one[\s-]?time password|do not share|\bcvv\b|\bpin\b|pre-?approved|\boffer\b|apply now|click|http|\bwill be (?:debited|credited)\b|\bis due\b|\bdue (?:on|by|date)\b|\bminimum (?:amount )?due\b|\bunsuccessful\b|\bfailed\b|\bdeclined\b|\bnot (?:been )?(?:processed|completed)\b|\brequested?\b|\bmandate\b|\bbalance (?:is|as on)\b/i;
+  /\botp\b|one[\s-]?time password|do not share|\bcvv\b|\bpin\b|pre-?approved|\boffer\b|apply now|\bwill be (?:debited|credited)\b|\bis due\b|\bdue (?:on|by|date)\b|\bminimum (?:amount )?due\b|\bunsuccessful\b|\bfailed\b|\bdeclined\b|\bnot (?:been )?(?:processed|completed)\b|\brequested?\b|\bmandate\b|\bbalance (?:is|as on)\b/i;
 
 const AMOUNT_RE = /(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/gi;
+// Some banks (e.g. SBI UPI) write "debited by 250.0" with no Rs/INR. Only trust a bare
+// number when it directly follows the transaction verb, and never when it looks like a
+// date ("18-11-26") or runs into more digits.
+const VERB_AMOUNT_RE =
+  /\b(?:debited|credited|deducted|withdrawn|paid|sent|spent|received|deposited)\s+(?:by|with|for|of)\s+(?:rs\.?|inr|₹)?\s*(\d[\d,]*(?:\.\d{1,2})?)(?![\d/-])/i;
+// Banks add links like "Not you? report at https://…". A link only disqualifies a message
+// that never names an account, card or UPI, which is what promos and phishing look like.
+const LINK_RE = /https?:\/\/|www\.|\bclick\b/i;
+const ACCOUNT_REF_RE = /\ba\/c|\bacc(?:oun)?t\b|\bacct\b|\bcard\b|\bupi\b|\bvpa\b|\b[xX*]+\d{3,}/i;
 const BALANCE_BEFORE_RE = /(?:bal(?:ance)?|avl|available|limit|outstanding|total)[^\d₹]{0,15}$/i;
 const DEBIT_RE = /\b(?:debited|spent|paid|withdrawn|purchase|sent|deducted|payment of)\b/i;
 const CREDIT_RE = /\b(?:credited|received|deposited|refund(?:ed)?|cashback)\b/i;
@@ -56,6 +65,11 @@ function parseAmountPaise(text: string): number | null {
     const rupees = Number(match[1].replace(/,/g, ''));
     if (!Number.isFinite(rupees) || rupees <= 0) continue;
     return Math.round(rupees * 100);
+  }
+  const bare = text.match(VERB_AMOUNT_RE);
+  if (bare) {
+    const rupees = Number(bare[1].replace(/,/g, ''));
+    if (Number.isFinite(rupees) && rupees > 0) return Math.round(rupees * 100);
   }
   return null;
 }
@@ -84,7 +98,7 @@ function cleanName(raw: string | undefined): string | null {
 }
 
 function detectMerchant(text: string, type: 'expense' | 'income'): string | null {
-  const stop = String.raw`(?=\s+(?:on|via|using|ref|upi|utr|txn|from|dated|at|avl|bal|not)\b|\s*[(.,;]|\s*-\s|$)`;
+  const stop = String.raw`(?=\s+(?:on|via|using|ref(?:no)?|upi|utr|txn|from|dated|at|avl|bal|not|if)\b|\s*[(.,;]|\s*-\s|$)`;
   const patterns =
     type === 'expense'
       ? [new RegExp(String.raw`\bto\s+(?:VPA\s+)?([^\n]+?)${stop}`, 'i'), new RegExp(String.raw`\b(?:at|@)\s+([^\n]+?)${stop}`, 'i'), new RegExp(String.raw`\binfo[:\s-]+(?:UPI[/-])?([^\n/]+?)${stop}`, 'i')]
@@ -118,6 +132,7 @@ function detectCategory(text: string, merchant: string | null, type: 'expense' |
 export function parseBankSms(message: SmsMessage): SmsDraft | null {
   const body = message.body.replace(/\s+/g, ' ').trim();
   if (!body || SKIP_RE.test(body)) return null;
+  if (LINK_RE.test(body) && !ACCOUNT_REF_RE.test(body)) return null;
   const amountPaise = parseAmountPaise(body);
   if (amountPaise === null) return null;
   const type = detectType(body);

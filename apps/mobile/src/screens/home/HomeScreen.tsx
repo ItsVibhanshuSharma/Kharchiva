@@ -10,7 +10,7 @@ import { Text } from '../../components/Text';
 import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Mic, Minus, Plus, UserRound } from '../../components/icons';
 import { subscribeToEntryChanges } from '../../features/entries/entryEvents';
 import { SmsReviewSheet } from '../../features/sms/SmsReviewSheet';
-import { requestSmsPermission } from '../../features/sms/smsInbox';
+import { askForSmsPermission } from '../../features/sms/smsInbox';
 import { useSmsDrafts } from '../../features/sms/useSmsDrafts';
 import { VoiceEntrySheet } from '../../features/voice/VoiceEntrySheet';
 import type { LedgerTransaction } from '../../database/models/transaction';
@@ -157,7 +157,7 @@ export function HomeScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={sms.drafts.length > 0 ? 'Review SMS transactions' : 'Turn on SMS detection'}
-            onPress={() => (sms.drafts.length > 0 ? setSmsOpen(true) : requestSmsPermission().then(sms.refresh))}
+            onPress={() => (sms.drafts.length > 0 ? setSmsOpen(true) : askForSmsPermission().then(sms.refresh))}
             style={styles.smsBanner}
           >
             <Text variant="label" style={styles.smsBannerText}>

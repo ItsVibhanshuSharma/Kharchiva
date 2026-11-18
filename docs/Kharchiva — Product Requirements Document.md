@@ -1284,7 +1284,7 @@ These totals are always calculated from the entries, never stored. Months follow
 
 # **49\. Later (not in v1)**
 
-Everything below is kept as product direction but is **not** part of v1. Screens that already exist in the app for these features are parked: they are not reachable from navigation.
+Everything below is kept as product direction but is **not** part of v1. Early mock-data screens for these features were removed from the app; each feature will be built properly when its turn comes.
 
 ## **Next (after v1 is stable)**
 

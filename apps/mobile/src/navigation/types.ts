@@ -13,15 +13,6 @@ export type RootStackParamList = {
   Mpin: undefined;
   /** Optional initial range, YYYY-MM-DD; defaults to this month. */
   Statement: { from?: string; to?: string } | undefined;
-  // Parked for a later release. Screens exist but are not registered in the
-  // navigator and have no entry points. See docs: PRD "Later".
-  Reports: undefined;
-  BudgetDetails: undefined;
-  Recurring: undefined;
-  ExportStatement: undefined;
-  OfflineSync: undefined;
-  Groups: undefined;
-  SplitExpense: undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 

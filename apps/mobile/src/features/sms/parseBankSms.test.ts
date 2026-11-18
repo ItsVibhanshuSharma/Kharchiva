@@ -24,6 +24,33 @@ describe('parseBankSms', () => {
     expect(sms('Sent Rs.250.00 from HDFC Bank A/C *1234 to RAMESH on 12/05/25. Ref 55. Credited to RAMESH')?.type).toBe('expense');
   });
 
+  it('reads an SBI UPI debit that has no Rs/INR, without swallowing "Refno"', () => {
+    const draft = sms('Dear UPI user A/C X1234 debited by 250.0 on date 18Nov26 trf to SWIGGY Refno 112233445566. If not u? call 1800111109. -SBI');
+    expect(draft).toMatchObject({ type: 'expense', amountPaise: 25000, merchant: 'SWIGGY', category: 'Food & Dining', paymentSource: 'UPI ··1234' });
+  });
+
+  it('reads an SBI UPI credit', () => {
+    const draft = sms('Dear SBI UPI User, ur A/cX1234 credited by Rs500 on 18Nov26 by (Ref no 123456789)');
+    expect(draft).toMatchObject({ type: 'income', amountPaise: 50000 });
+  });
+
+  it('keeps a real bank SMS that ends with a fraud-report link', () => {
+    const draft = sms('Sent Rs.250.00 from Kotak Bank AC X1234 to swiggy@okaxis on 18-11-26.UPI Ref 123456. Not you, https://kotak.com/KBANKT/Fraud');
+    expect(draft).toMatchObject({ type: 'expense', amountPaise: 25000, merchant: 'swiggy' });
+  });
+
+  it('never reads a date or reference as a bare amount', () => {
+    expect(sms('Your A/c X1234 was debited for 18/11 charges')).toBeNull();
+    expect(sms('A/C X1234 debited on 18-11-26. Call 1800')).toBeNull();
+  });
+
+  it.each([
+    'Congrats! Rs 5000 credited to your wallet. Click http://bit.ly/abc to claim',
+    'You have received Rs 2,000 reward, visit www.claim-now.in',
+  ])('drops link messages that name no account, card or UPI: %s', body => {
+    expect(sms(body)).toBeNull();
+  });
+
   it.each([
     '123456 is your OTP for Rs 500 payment. Do not share.',
     'Rs 500 debit failed due to insufficient funds',

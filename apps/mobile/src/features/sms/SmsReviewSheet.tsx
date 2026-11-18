@@ -6,6 +6,8 @@ import { Text } from '../../components/Text';
 import { Check, X } from '../../components/icons';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { colors, radius, spacing } from '../../theme';
+import { dateForExpenseInput } from '../../screens/expenses/expenseInputUtils';
+import { formatShortDate } from '../../utils/dates';
 import { formatRupees } from '../../utils/money';
 import { notifyEntriesChanged } from '../entries/entryEvents';
 import type { SmsDraft } from './parseBankSms';
@@ -100,7 +102,7 @@ export function SmsReviewSheet({ visible, drafts, onClose }: Props) {
                   <View style={styles.cardMeta}>
                     <Text variant="label" numberOfLines={1} style={styles.cardTitle}>{titleOf(draft)}</Text>
                     <Text variant="caption" numberOfLines={1}>
-                      {`${draft.category} · ${new Date(draft.occurredAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+                      {`${draft.category} · ${formatShortDate(dateForExpenseInput(new Date(draft.occurredAt)))}`}
                     </Text>
                   </View>
                   <Pressable

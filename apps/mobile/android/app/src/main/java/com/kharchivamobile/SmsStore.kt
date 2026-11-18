@@ -15,9 +15,16 @@ object SmsStore {
 
   // Only SMS that mention an amount are kept; OTP messages are dropped here so they are never stored.
   private val AMOUNT = Regex("(rs\\.?|inr|₹)\\s*[\\d,]+", RegexOption.IGNORE_CASE)
+  // Banks like SBI write "debited by 250.0" without Rs/INR. Keep in sync with VERB_AMOUNT_RE in parseBankSms.ts.
+  private val VERB_AMOUNT =
+    Regex(
+      "\\b(debited|credited|deducted|withdrawn|paid|sent|spent|received|deposited)\\s+(by|with|for|of)\\s+(rs\\.?|inr|₹)?\\s*\\d",
+      RegexOption.IGNORE_CASE,
+    )
   private val OTP = Regex("\\botp\\b|one[\\s-]?time password", RegexOption.IGNORE_CASE)
 
-  fun isCandidate(body: String) = AMOUNT.containsMatchIn(body) && !OTP.containsMatchIn(body)
+  fun isCandidate(body: String) =
+    (AMOUNT.containsMatchIn(body) || VERB_AMOUNT.containsMatchIn(body)) && !OTP.containsMatchIn(body)
 
   @Synchronized
   fun add(context: Context, sender: String, body: String, receivedAt: Long) {

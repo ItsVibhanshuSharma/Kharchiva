@@ -1,4 +1,4 @@
-import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import { parseBankSms, type SmsDraft, type SmsMessage } from './parseBankSms';
 
 type NativeSms = {
@@ -22,6 +22,25 @@ export async function hasSmsPermission(): Promise<boolean> {
 export async function requestSmsPermission(): Promise<boolean> {
   if (!native()) return false;
   return (await PermissionsAndroid.request(PERMISSION)) === PermissionsAndroid.RESULTS.GRANTED;
+}
+
+/**
+ * Explains exactly what is read before the system prompt appears (Play policy's
+ * "prominent disclosure"). Resolves true only if the user agrees and grants it.
+ */
+export function askForSmsPermission(): Promise<boolean> {
+  return new Promise(resolve => {
+    Alert.alert(
+      'Bank SMS se kharche pakdein?',
+      'Kharchiva sirf naye aane wale bank/UPI SMS padhega jinme amount ho. OTP aur personal SMS ignore hote hain. ' +
+        'Sab kuch isi phone par rehta hai, kahin upload nahi hota, aur har entry aap save karne se pehle dekhoge.',
+      [
+        { text: 'Abhi nahi', style: 'cancel', onPress: () => resolve(false) },
+        { text: 'Chalu karo', onPress: () => requestSmsPermission().then(resolve, () => resolve(false)) },
+      ],
+      { cancelable: true, onDismiss: () => resolve(false) },
+    );
+  });
 }
 
 export async function discardSms(ids: string[]): Promise<void> {
