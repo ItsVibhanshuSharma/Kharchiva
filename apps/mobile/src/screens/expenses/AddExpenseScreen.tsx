@@ -16,13 +16,14 @@ import { Text } from '../../components/Text';
 import { bottomSafeAreaInset, fixedFooterContentInset } from '../../components/layoutInsets';
 import type { EntryType, RootStackParamList } from '../../navigation/types';
 import { colors, radius, spacing } from '../../theme';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../theme/categories';
+import { addCustomCategory, addPaymentSource, categoryNames, paymentSourceNames, useCatalog } from '../../features/catalog/catalogStore';
+import { NewItemSheet } from '../../features/catalog/NewItemSheet';
+import { checkBudgetsAfterExpense } from '../../features/budget/budgetCheck';
+import { Plus } from '../../components/icons';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput, describeDateInput, expenseDateToIso, parseRupeesToPaise, shiftDateInput } from './expenseInputUtils';
 
-const expenseCategories: readonly string[] = EXPENSE_CATEGORIES;
-const incomeCategories: readonly string[] = INCOME_CATEGORIES;
-const paymentMethods = ['UPI', 'Cash', 'Credit Card', 'Debit Card'];
+
 const SAVE_BUTTON_HEIGHT = 56;
 const SAVE_FOOTER_TOP_SPACING = spacing.md;
 const CONTENT_CLEARANCE_SPACING = spacing.xl;
@@ -46,7 +47,10 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const isEditing = Boolean(editId);
   const [entryType, setEntryType] = useState<EntryType>(route?.params?.type ?? 'expense');
   const isIncome = entryType === 'income';
-  const categories = isIncome ? incomeCategories : expenseCategories;
+  const catalog = useCatalog();
+  const categories = categoryNames(catalog, entryType);
+  const paymentMethods = paymentSourceNames(catalog);
+  const [adding, setAdding] = useState<'category' | 'payment' | null>(null);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(categories[0]);
   const [sourceName, setSourceName] = useState('');
@@ -133,7 +137,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const switchType = (next: EntryType) => {
     if (next === entryType) return;
     setEntryType(next);
-    setCategory((next === 'income' ? incomeCategories : expenseCategories)[0]);
+    setCategory(categoryNames(catalog, next)[0]);
     setValidationError('');
     setLoadError('');
   };
@@ -190,6 +194,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
       // New entries get the celebration; edits get a quiet confirmation.
       if (editId) showSnackbar({ message: 'Changes save ho gaye' });
       else celebrate({ type: entryType, category, amountPaise });
+      if (!editId && !isIncome) checkBudgetsAfterExpense({ category, amountPaise, occurredAt });
       navigation.goBack();
     } catch {
       showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' });
@@ -294,9 +299,17 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
                   </Text>
                 </Pressable>
               ))}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add a new category"
+                onPress={() => setAdding('category')}
+                style={[styles.categoryCard, styles.addCard]}
+              >
+                <View style={styles.addIcon}><Plus color={colors.primary} size={24} strokeWidth={2.4} /></View>
+                <Text variant="body" numberOfLines={1} style={styles.addText}>Nayi</Text>
+              </Pressable>
             </View>
           </View>
-
           {!isIncome ? (
           <View style={styles.paymentSection}>
             <View style={styles.sectionHeader}>
@@ -317,6 +330,14 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
                     <Text variant="label" style={[styles.paymentChipText, paymentSource === method && styles.selectedPaymentText]}>{method}</Text>
                   </Pressable>
                 ))}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Add a new payment source"
+                  onPress={() => setAdding('payment')}
+                  style={[styles.paymentChip, styles.addChip]}
+                >
+                  <Text variant="label" style={styles.addText}>+ Naya</Text>
+                </Pressable>
               </View>
             </ScrollView>
           </View>
@@ -387,6 +408,23 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           </View>
         </View>
       </KeyboardAvoidingView>
+      <NewItemSheet
+        onClose={() => setAdding(null)}
+        onSave={async (name, emoji) => {
+          if (adding === 'payment') {
+            const created = await addPaymentSource(name);
+            setPaymentSource(created.name);
+          } else {
+            const created = await addCustomCategory({ name, type: entryType, emoji });
+            setCategory(created.name);
+            setValidationError('');
+          }
+        }}
+        placeholder={adding === 'payment' ? 'Jaise: HDFC Credit Card' : isIncome ? 'Jaise: Rent income' : 'Jaise: Gym'}
+        title={adding === 'payment' ? 'Naya payment source' : 'Nayi category'}
+        visible={adding !== null}
+        withEmoji={adding === 'category'}
+      />
       <CalendarPicker
         maxDate={today}
         onClose={() => setCalendarOpen(false)}
@@ -466,6 +504,10 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   categoryText: { color: colors.text, fontSize: 14, lineHeight: 18 },
+  addCard: { borderColor: colors.primaryMuted, borderStyle: 'dashed' },
+  addIcon: { alignItems: 'center', backgroundColor: colors.primaryMuted, borderRadius: 15, height: 48, justifyContent: 'center', width: 48 },
+  addText: { color: colors.primary, fontSize: 14 },
+  addChip: { borderColor: colors.primary, borderStyle: 'dashed' },
   selectedCategoryText: { color: colors.white },
   paymentSection: { marginBottom: spacing.lg },
   paymentList: { flexDirection: 'row', gap: spacing.sm },

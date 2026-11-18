@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { customCategoryFor, useCatalog } from '../features/catalog/catalogStore';
 import { categoryLook } from '../theme/categories';
 import { radius } from '../theme';
 
@@ -12,7 +13,10 @@ export type CategoryIconProps = {
 };
 
 export function CategoryIcon({ category, type, size = 44, inverted = false }: CategoryIconProps) {
+  const catalog = useCatalog();
   const { Icon, color, tint } = categoryLook(category, type);
+  // The user's own categories can carry an emoji; it wins over the name-based icon.
+  const emoji = customCategoryFor(catalog, category, type)?.emoji;
   return (
     <View
       style={[
@@ -21,7 +25,11 @@ export function CategoryIcon({ category, type, size = 44, inverted = false }: Ca
         { borderRadius: size * 0.32, height: size, width: size },
       ]}
     >
-      <Icon color={inverted ? '#FFFFFF' : color} size={Math.round(size * 0.5)} strokeWidth={2.2} />
+      {emoji ? (
+        <Text style={{ fontSize: Math.round(size * 0.5), lineHeight: Math.round(size * 0.62) }}>{emoji}</Text>
+      ) : (
+        <Icon color={inverted ? '#FFFFFF' : color} size={Math.round(size * 0.5)} strokeWidth={2.2} />
+      )}
     </View>
   );
 }

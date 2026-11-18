@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAVIGATION_CONTENT_INSET, BottomNavigation } from '../../components/BottomNavigation';
 import { Screen } from '../../components/Screen';
 import { Text } from '../../components/Text';
-import { ChevronRight, EyeOff, FileText, KeyRound, LogOut, Pencil, Smartphone } from '../../components/icons';
+import { ChevronRight, EyeOff, FileText, KeyRound, LogOut, Pencil, Smartphone, Tags, Target } from '../../components/icons';
 import { useMpinEnabled } from '../../features/mpin/mpinStatus';
 import { setPrivacyOn, usePrivacy } from '../../features/privacy/privacy';
 import { appTabItems, navigateToTab } from '../../navigation/appTabs';
@@ -86,6 +86,36 @@ export function ProfileScreen() {
           <View style={styles.identity}>
             <Text variant="label" style={styles.rowTitle}>MPIN</Text>
             <Text variant="caption">{mpinEnabled ? 'Chalu hai. Badlo ya hata do' : 'App kholne par MPIN lagao'}</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Budget"
+          onPress={() => navigation.navigate('Budget')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Target color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>Budget (optional)</Text>
+            <Text variant="caption">Category ki mahine ki limit lagao</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Categories and payment sources"
+          onPress={() => navigation.navigate('ManageLists')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Tags color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>Categories & payment</Text>
+            <Text variant="caption">Apni categories aur cards jodo</Text>
           </View>
           <ChevronRight color={colors.textMuted} size={20} />
         </Pressable>

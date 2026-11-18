@@ -13,6 +13,8 @@ import { SmsReviewSheet } from '../../features/sms/SmsReviewSheet';
 import { askForSmsPermission } from '../../features/sms/smsInbox';
 import { useSmsDrafts } from '../../features/sms/useSmsDrafts';
 import { VoiceEntrySheet } from '../../features/voice/VoiceEntrySheet';
+import { BudgetHomeCard } from '../../features/budget/BudgetHomeCard';
+import { useCatalog } from '../../features/catalog/catalogStore';
 import type { LedgerTransaction } from '../../database/models/transaction';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { appTabItems, navigateToTab } from '../../navigation/appTabs';
@@ -75,6 +77,7 @@ export function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const catalog = useCatalog();
   const [smsOpen, setSmsOpen] = useState(false);
   const sms = useSmsDrafts();
   // Bumped when entries change outside this screen (voice sheet, quick-add window),
@@ -284,6 +287,14 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
+        {/* Budgets are opt-in: this shows only after the user creates one. */}
+        {!isYear && isSameMonth(month, thisMonth) ? (
+          <BudgetHomeCard
+            budgets={catalog.budgets}
+            monthExpenses={transactions.filter(item => item.type === 'expense')}
+            onOpen={() => navigation.navigate('Budget')}
+          />
+        ) : null}
         <View style={styles.sectionHeading}>
           <Text variant="heading" style={styles.sectionTitle}>{isYear ? 'Month by month' : 'This month'}</Text>
           <Pressable

@@ -8,6 +8,8 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
   readonly statements: Array<{query: string; params: Scalar[]}> = [];
   private readonly versions = new Set<number>();
   private readonly tables: Record<'expenses' | 'incomes', Row[]> = {expenses: [], incomes: []};
+  /** Simple list tables, handled generically: insert with named columns, select active rows, update by id. */
+  private readonly lists: Record<string, Row[]> = {custom_categories: [], payment_sources: [], budgets: []};
 
   async execute(query: string, params: Scalar[] = []): Promise<QueryResult> {
     this.statements.push({query, params});
@@ -19,6 +21,32 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
     }
     if (lower.startsWith('insert into schema_migrations')) {
       this.versions.add(Number(params[0]));
+      return this.result([], 1);
+    }
+    const listInsert = /^insert into (\w+) \(([^)]+)\) values \(([^)]+)\);?$/i.exec(normalized);
+    if (listInsert && listInsert[1].toLowerCase() in this.lists) {
+      const columns = listInsert[2].split(',').map(column => column.trim());
+      const values = listInsert[3].split(',').map(value => value.trim());
+      let next = 0;
+      const row: Row = {};
+      columns.forEach((column, index) => {
+        row[column] = values[index] === '?' ? params[next++] ?? null : null;
+      });
+      this.lists[listInsert[1].toLowerCase()].push(row);
+      return this.result([], 1);
+    }
+    const listSelect = /^select \* from (\w+) where deletedat is null order by createdat asc;?$/i.exec(normalized);
+    if (listSelect && listSelect[1].toLowerCase() in this.lists) {
+      const rows = this.lists[listSelect[1].toLowerCase()].filter(row => row.deletedAt == null);
+      return this.result([...rows].sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt))).map(row => ({...row})));
+    }
+    const listUpdate = /^update (\w+) set (.+?) where id = \? and deletedat is null;?$/i.exec(normalized);
+    if (listUpdate && listUpdate[1].toLowerCase() in this.lists) {
+      const assignments = listUpdate[2].split(',').map(item => item.split('=')[0].trim());
+      const id = params[params.length - 1];
+      const row = this.lists[listUpdate[1].toLowerCase()].find(item => item.id === id && item.deletedAt == null);
+      if (!row) return this.result([], 0);
+      assignments.forEach((column, index) => {row[column] = params[index] ?? null;});
       return this.result([], 1);
     }
     if (lower.startsWith('insert into expenses')) {

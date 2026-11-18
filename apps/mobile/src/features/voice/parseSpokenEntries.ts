@@ -283,7 +283,22 @@ function normalize(input: string): string {
     .trim();
 }
 
-function parsePiece(piece: string, date: string): ParsedEntry | null {
+/** The user's own categories, so "300 gym" can land in their "Gym" category. */
+export type CustomCategoryHint = { name: string; type: EntryType };
+
+export type ParseOptions = { customCategories?: CustomCategoryHint[] };
+
+/** Longest custom name said as whole words in the piece, e.g. "kids school" before "school". */
+function matchCustom(rest: string, custom: CustomCategoryHint[]): CustomCategoryHint | null {
+  const padded = ` ${wordsOf(rest).join(' ')} `;
+  const sorted = [...custom].sort((a, b) => b.name.length - a.name.length);
+  return sorted.find(item => {
+    const key = wordsOf(item.name.toLowerCase()).join(' ');
+    return key.length > 0 && padded.includes(` ${key} `);
+  }) ?? null;
+}
+
+function parsePiece(piece: string, date: string, custom: CustomCategoryHint[] = []): ParsedEntry | null {
   const amounts = findAmounts(piece);
   if (amounts.length === 0) return null;
   const amount = amounts[0];
@@ -302,18 +317,25 @@ function parsePiece(piece: string, date: string): ParsedEntry | null {
   else if (expenseCategory && !saysIncome) type = 'expense';
   else if (incomeCategory || saysIncome) type = 'income';
 
-  const category = type === 'income' ? incomeCategory ?? 'Other' : expenseCategory ?? 'Other';
+  let category = type === 'income' ? incomeCategory ?? 'Other' : expenseCategory ?? 'Other';
+  // A category the user made themselves is the most specific match there is.
+  const customMatch = matchCustom(rest, custom);
+  if (customMatch) {
+    category = customMatch.name;
+    if (!saysExpense && !saysIncome) type = customMatch.type;
+    else if (customMatch.type !== type) category = type === 'income' ? incomeCategory ?? 'Other' : expenseCategory ?? 'Other';
+  }
   const merchantKey = words.find(word => MERCHANTS[word]);
   const merchant = merchantKey ? MERCHANTS[merchantKey] : null;
   const noteWords = words.filter(word => !FILLER.has(word) && !/^\d+$/.test(word) && word !== merchantKey);
   const noteText = noteWords.join(' ');
   // "1 lakh salary" -> no point repeating "Salary" as the note.
-  const note = noteText && noteText !== category.toLowerCase() ? capitalize(noteText) : null;
+  const note = noteText && noteText !== wordsOf(category.toLowerCase()).join(' ') ? capitalize(noteText) : null;
 
   return { type, amountPaise, category, date, merchant, note, sourceText: piece.trim() };
 }
 
-export function parseSpokenEntries(input: string, today: string): ParseResult {
+export function parseSpokenEntries(input: string, today: string, options: ParseOptions = {}): ParseResult {
   const text = normalize(input);
   if (!text) return { entries: [], unparsed: [] };
 
@@ -341,7 +363,7 @@ export function parseSpokenEntries(input: string, today: string): ParseResult {
     if (item.date) carried = item.date;
     const date = shared ?? item.date ?? carried ?? today;
     if (!item.rest) continue; // a bare date phrase, already applied
-    const entry = parsePiece(item.rest, date);
+    const entry = parsePiece(item.rest, date, options.customCategories);
     if (entry) {
       entries.push({ ...entry, sourceText: item.original.trim() });
     } else if (wordsOf(item.rest).some(word => !FILLER.has(word))) {

@@ -34,6 +34,8 @@ describe('App navigator foundation', () => {
       'Profile',
       'Mpin',
       'Statement',
+      'Budget',
+      'ManageLists',
     ]);
   });
 

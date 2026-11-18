@@ -9,6 +9,7 @@ import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput, describeDateInput, expenseDateToIso } from '../../screens/expenses/expenseInputUtils';
 import { colors, radius, spacing } from '../../theme';
 import { formatRupees } from '../../utils/money';
+import { useCatalog } from '../catalog/catalogStore';
 import { notifyEntriesChanged } from '../entries/entryEvents';
 import { parseSpokenEntries, type ParsedEntry } from './parseSpokenEntries';
 import { startSpeech } from './speech';
@@ -40,7 +41,11 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
   const pulse = useRef(new Animated.Value(0)).current;
   const today = dateForExpenseInput(new Date());
 
-  const parsed = useMemo(() => parseSpokenEntries(transcript, today), [transcript, today]);
+  const catalog = useCatalog();
+  const parsed = useMemo(
+    () => parseSpokenEntries(transcript, today, { customCategories: catalog.customCategories }),
+    [transcript, today, catalog.customCategories],
+  );
   // Manual tweaks are tied to the current text; editing the text resets them.
   const entries = parsed.entries
     .map((entry, index) => ({ entry: flipped.has(index) ? flip(entry) : entry, index }))

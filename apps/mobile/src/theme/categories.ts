@@ -27,6 +27,8 @@ export const EXPENSE_CATEGORIES = [
   'Food & Dining', 'Groceries', 'Fuel', 'Travel', 'Shopping', 'Bills', 'Rent', 'Health', 'Entertainment', 'Other',
 ] as const;
 export const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Business', 'Bonus', 'Interest', 'Other'] as const;
+/** Built-in payment methods; users can add their own (e.g. "HDFC Credit Card"). */
+export const DEFAULT_PAYMENT_SOURCES = ['UPI', 'Cash', 'Credit Card', 'Debit Card'] as const;
 
 export type CategoryLook = {
   Icon: LucideIcon;

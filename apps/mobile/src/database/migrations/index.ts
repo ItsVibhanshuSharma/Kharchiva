@@ -80,4 +80,41 @@ export const migrations = [
       );
     `);
   }),
+  // User-made lists and optional budgets. Built-in categories and payment methods
+  // stay in code; only what the user adds lives here. Entries keep the category /
+  // payment source as plain text, so deleting a list item never touches history.
+  createMigration(4, async (database) => {
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS custom_categories (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+        type TEXT NOT NULL CHECK (type IN ('expense', 'income')),
+        emoji TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS payment_sources (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+    // A monthly limit that repeats every month. category is a category name, or
+    // '__TOTAL__' for all expenses. Spent amounts are always derived from expenses.
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS budgets (
+        id TEXT PRIMARY KEY NOT NULL,
+        category TEXT NOT NULL CHECK (length(trim(category)) > 0),
+        limitPaise INTEGER NOT NULL CHECK (limitPaise > 0),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+  }),
 ];

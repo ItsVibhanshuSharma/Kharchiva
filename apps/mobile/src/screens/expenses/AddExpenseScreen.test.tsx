@@ -7,6 +7,8 @@ import {SQLiteTransactionRepository, type TransactionRepository} from '../../dat
 import {InMemoryFinancialDatabase} from '../../database/testing/InMemoryFinancialDatabase';
 import {TransactionsScreen} from '../transactions/TransactionsScreen';
 import {CalendarPicker} from '../../components/CalendarPicker';
+import {SQLiteCatalogRepository} from '../../database/repositories/CatalogRepository';
+import {resetCatalogForTests} from '../../features/catalog/catalogStore';
 import {AddExpenseScreen} from './AddExpenseScreen';
 import {dateForExpenseInput} from './expenseInputUtils';
 
@@ -27,6 +29,10 @@ const mockCelebrate = jest.fn();
 const mockSnackbar = jest.fn();
 jest.mock('../../components/snackbar', () => ({showSnackbar: (options: unknown) => mockSnackbar(options)}));
 jest.mock('../../components/celebration', () => ({celebrate: (event: unknown) => mockCelebrate(event)}));
+const mockBudgetCheck = jest.fn();
+jest.mock('../../features/budget/budgetCheck', () => ({checkBudgetsAfterExpense: (expense: unknown) => mockBudgetCheck(expense)}));
+const mockCatalogRepo = jest.fn();
+jest.mock('../../database/catalogRepository', () => ({getCatalogRepository: () => mockCatalogRepo()}));
 jest.mock('../../database/transactionRepository', () => ({getTransactionRepository: () => mockRepositoryGetter()}));
 jest.mock('react-native-safe-area-context', () => ({useSafeAreaInsets: () => ({top: 0, right: 0, bottom: 0, left: 0})}));
 
@@ -35,11 +41,14 @@ describe('Add Expense to SQLite to Transactions ledger', () => {
   beforeEach(async () => {
     mockGoBack.mockClear();
     mockCelebrate.mockClear();
+    mockBudgetCheck.mockClear();
+    resetCatalogForTests();
     mockSnackbar.mockClear();
     const database = new InMemoryFinancialDatabase();
     await initializeDatabase(database);
     repository = new SQLiteTransactionRepository(database, {idFactory: () => 'expense-integration-1', now: () => new Date('2026-10-13T08:00:00.000Z')});
     mockRepositoryGetter.mockReset().mockResolvedValue(repository);
+    mockCatalogRepo.mockReset().mockResolvedValue(new SQLiteCatalogRepository(database, {idFactory: () => 'cat-1'}));
   });
 
   const textContent = (renderer: ReactTestRenderer.ReactTestRenderer) => renderer.root.findAllByType(Text)
@@ -214,5 +223,20 @@ describe('Add Expense to SQLite to Transactions ledger', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(2);
     expect(mockSnackbar).toHaveBeenLastCalledWith({message: 'Expense delete ho gaya'});
     alert.mockRestore();
+  });
+
+  it('adds a new category from the form and selects it, then checks budgets on save', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+    await ReactTestRenderer.act(async () => {renderer = ReactTestRenderer.create(<AddExpenseScreen />);});
+    await press(renderer!, 'Add a new category');
+    ReactTestRenderer.act(() => renderer!.root.findByProps({accessibilityLabel: 'New name'}).props.onChangeText('Gym'));
+    await press(renderer!, 'Save new item');
+    await ReactTestRenderer.act(async () => {for (let i = 0; i < 6; i += 1) await Promise.resolve();});
+    expect(renderer!.root.findByProps({accessibilityLabel: 'Category Gym'}).props.accessibilityState.selected).toBe(true);
+
+    ReactTestRenderer.act(() => renderer!.root.findByProps({accessibilityLabel: 'Expense amount'}).props.onChangeText('1500'));
+    await press(renderer!, 'Save Expense');
+    expect(await repository.getById('expense-integration-1', 'expense')).toMatchObject({category: 'Gym', amountPaise: 150000});
+    expect(mockBudgetCheck).toHaveBeenCalledWith(expect.objectContaining({category: 'Gym', amountPaise: 150000}));
   });
 });

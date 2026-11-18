@@ -170,4 +170,21 @@ describe('parseSpokenEntries', () => {
     expect(EXPENSE_CATEGORIES).toEqual(expect.arrayContaining(PARSER_CATEGORIES.expense));
     expect(INCOME_CATEGORIES).toEqual(expect.arrayContaining(PARSER_CATEGORIES.income));
   });
+
+  describe("the user's own categories", () => {
+    const custom = { customCategories: [{ name: 'Gym', type: 'expense' as const }, { name: 'Kids School', type: 'expense' as const }, { name: 'Rent income', type: 'income' as const }] };
+
+    it('prefers a custom category the user said, over built-in guesses', () => {
+      expect(parseSpokenEntries('1500 gym fees', TODAY, custom).entries[0]).toMatchObject({ category: 'Gym', type: 'expense' });
+      expect(parseSpokenEntries('5000 kids school', TODAY, custom).entries[0]).toMatchObject({ category: 'Kids School' });
+    });
+
+    it('uses the custom type unless the sentence says otherwise', () => {
+      expect(parseSpokenEntries('12000 rent income', TODAY, custom).entries[0]).toMatchObject({ category: 'Rent income', type: 'income' });
+    });
+
+    it('does nothing when no custom name was said', () => {
+      expect(parseSpokenEntries('500 petrol', TODAY, custom).entries[0]).toMatchObject({ category: 'Fuel' });
+    });
+  });
 });

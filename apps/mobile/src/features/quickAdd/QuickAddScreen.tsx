@@ -7,7 +7,8 @@ import { Check, X } from '../../components/icons';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { parseRupeesToPaise } from '../../screens/expenses/expenseInputUtils';
 import { colors, radius, spacing } from '../../theme';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, categoryLook } from '../../theme/categories';
+import { categoryLook } from '../../theme/categories';
+import { categoryNames, useCatalog } from '../catalog/catalogStore';
 import { formatRupees } from '../../utils/money';
 import { notifyEntriesChanged } from '../entries/entryEvents';
 
@@ -40,7 +41,8 @@ export function QuickAddScreen({ initialType, onClose }: QuickAddScreenProps) {
     if (closeTimer.current) clearTimeout(closeTimer.current);
   }, []);
 
-  const categories: readonly string[] = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const catalog = useCatalog();
+  const categories = categoryNames(catalog, type);
   const amountPaise = parseRupeesToPaise(amount);
   const canSave = Boolean(amountPaise && category) && !saving && !saved;
 

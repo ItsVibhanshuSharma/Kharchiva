@@ -13,6 +13,8 @@ export type RootStackParamList = {
   Mpin: undefined;
   /** Optional initial range, YYYY-MM-DD; defaults to this month. */
   Statement: { from?: string; to?: string } | undefined;
+  Budget: undefined;
+  ManageLists: undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 
@@ -28,4 +30,6 @@ export const ACTIVE_ROUTES = [
   'Profile',
   'Mpin',
   'Statement',
+  'Budget',
+  'ManageLists',
 ] as const satisfies readonly RootStackRouteName[];
