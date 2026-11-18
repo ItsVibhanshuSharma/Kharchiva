@@ -14,7 +14,7 @@ class MainApplication : Application(), ReactApplication {
       context = applicationContext,
       packageList =
         PackageList(this).packages.apply {
-          add(SmsPackage())
+          if (BuildConfig.SMS_ENABLED) add(SmsPackage())
           add(StatementFilesPackage())
           add(ReminderPackage())
         },

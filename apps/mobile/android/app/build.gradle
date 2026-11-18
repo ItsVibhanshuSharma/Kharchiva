@@ -90,6 +90,15 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        // `-PnoSms` builds a copy to share outside the Play Store: no SMS permission,
+        // so Play Protect does not block the install. SMS detection is simply hidden.
+        buildConfigField "boolean", "SMS_ENABLED", project.hasProperty('noSms') ? "false" : "true"
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    if (project.hasProperty('noSms')) {
+        sourceSets.release.manifest.srcFile 'src/nosms/AndroidManifest.xml'
     }
     signingConfigs {
         debug {
