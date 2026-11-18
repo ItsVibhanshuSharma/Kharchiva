@@ -8,6 +8,8 @@ import { ProfileSetupScreen } from './auth/ProfileSetupScreen';
 import { HomeScreen } from './home/HomeScreen';
 import { AddExpenseScreen } from './expenses/AddExpenseScreen';
 
+jest.mock('@op-engineering/op-sqlite', () => ({open: jest.fn()}));
+
 describe('Phase 1 UI screens', () => {
   test.each([
     ['Welcome', <WelcomeScreen key="welcome" />],

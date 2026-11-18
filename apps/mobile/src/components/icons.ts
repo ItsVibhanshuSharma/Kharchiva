@@ -1,0 +1,46 @@
+/**
+ * Icons used in the app. Deep imports keep the bundle to just these icons
+ * instead of the whole lucide set.
+ */
+export { default as ArrowDownLeft } from 'lucide-react-native/icons/arrow-down-left';
+export { default as ArrowLeftRight } from 'lucide-react-native/icons/arrow-left-right';
+export { default as ArrowUpRight } from 'lucide-react-native/icons/arrow-up-right';
+export { default as Briefcase } from 'lucide-react-native/icons/briefcase';
+export { default as CalendarDays } from 'lucide-react-native/icons/calendar-days';
+export { default as Car } from 'lucide-react-native/icons/car';
+export { default as Check } from 'lucide-react-native/icons/check';
+export { default as ChevronLeft } from 'lucide-react-native/icons/chevron-left';
+export { default as ChevronRight } from 'lucide-react-native/icons/chevron-right';
+export { default as CircleEllipsis } from 'lucide-react-native/icons/circle-ellipsis';
+export { default as Coffee } from 'lucide-react-native/icons/coffee';
+export { default as Download } from 'lucide-react-native/icons/download';
+export { default as EyeOff } from 'lucide-react-native/icons/eye-off';
+export { default as FileText } from 'lucide-react-native/icons/file-text';
+export { default as Film } from 'lucide-react-native/icons/film';
+export { default as Fuel } from 'lucide-react-native/icons/fuel';
+export { default as Gift } from 'lucide-react-native/icons/gift';
+export { default as GraduationCap } from 'lucide-react-native/icons/graduation-cap';
+export { default as HeartPulse } from 'lucide-react-native/icons/heart-pulse';
+export { default as House } from 'lucide-react-native/icons/house';
+export { default as Laptop } from 'lucide-react-native/icons/laptop';
+export { default as LogOut } from 'lucide-react-native/icons/log-out';
+export { default as KeyRound } from 'lucide-react-native/icons/key-round';
+export { default as Mic } from 'lucide-react-native/icons/mic';
+export { default as Minus } from 'lucide-react-native/icons/minus';
+export { default as Pencil } from 'lucide-react-native/icons/pencil';
+export { default as PiggyBank } from 'lucide-react-native/icons/piggy-bank';
+export { default as Plane } from 'lucide-react-native/icons/plane';
+export { default as Plus } from 'lucide-react-native/icons/plus';
+export { default as Receipt } from 'lucide-react-native/icons/receipt';
+export { default as Share2 } from 'lucide-react-native/icons/share-2';
+export { default as ShoppingBag } from 'lucide-react-native/icons/shopping-bag';
+export { default as ShoppingCart } from 'lucide-react-native/icons/shopping-cart';
+export { default as Smartphone } from 'lucide-react-native/icons/smartphone';
+export { default as Sparkles } from 'lucide-react-native/icons/sparkles';
+export { default as Square } from 'lucide-react-native/icons/square';
+export { default as TrendingUp } from 'lucide-react-native/icons/trending-up';
+export { default as UserRound } from 'lucide-react-native/icons/user-round';
+export { default as Utensils } from 'lucide-react-native/icons/utensils';
+export { default as Wallet } from 'lucide-react-native/icons/wallet';
+export { default as X } from 'lucide-react-native/icons/x';
+export type { LucideIcon } from 'lucide-react-native';

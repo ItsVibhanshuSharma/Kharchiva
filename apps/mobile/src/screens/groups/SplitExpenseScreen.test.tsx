@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import {Text} from '../../components/Text';
+import {GroupsScreen} from './GroupsScreen';
 import {SplitExpenseScreen} from './SplitExpenseScreen';
 
 const mockNavigate = jest.fn();
@@ -26,55 +27,162 @@ describe('SplitExpenseScreen', () => {
     return renderer;
   };
 
-  const textContent = (renderer: ReactTestRenderer.ReactTestRenderer) =>
+  const visibleText = (renderer: ReactTestRenderer.ReactTestRenderer) =>
     renderer.root.findAllByType(Text).map(item => item.props.children)
-      .flatMap(value => Array.isArray(value) ? value : [value])
-      .filter((value): value is string => typeof value === 'string');
+      .flat(Infinity)
+      .filter((value): value is string | number => typeof value === 'string' || typeof value === 'number')
+      .map(String)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-  it('renders the sample dinner split, participants, group, and confirmation action', () => {
+  const press = (renderer: ReactTestRenderer.ReactTestRenderer, label: string) => {
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: label}).props.onPress();
+    });
+  };
+
+  beforeEach(() => {
+    mockNavigate.mockClear();
+    mockGoBack.mockClear();
+  });
+
+  it('renders the details, group, default equal split, participants, notes, and fixed CTA', () => {
     const renderer = renderScreen();
-    const text = textContent(renderer);
+    const text = visibleText(renderer);
     expect(text).toContain('Split Expense');
-    expect(text).toContain('Goa Retreat');
-    expect(text).toContain('Food & Dining');
-    expect(renderer.root.findByProps({accessibilityLabel: 'Expense title'}).props.value).toBe('Dinner at Fisherman’s Wharf');
-    expect(text.join(' ')).toContain('₹600 each = ₹2,400 total');
-    expect(text).toContain('Rahul Verma');
-    expect(text).toContain('Aman Gupta');
-    expect(text).toContain('Priya Nair');
-    expect(renderer.root.findByProps({accessibilityLabel: 'Confirm Split'})).toBeTruthy();
-    ReactTestRenderer.act(() => renderer.root.findByProps({accessibilityLabel: 'Confirm Split'}).props.onPress());
-    expect(textContent(renderer)).toContain('Split Confirmed ✓');
+    expect(text).toContain('Expense Details');
+    expect(renderer.root.findByProps({accessibilityLabel: 'Expense description'}).props.value).toBe('Dinner at Fisherman’s Wharf');
+    expect(text).toContain('Goa Beach Retreat');
+    expect(text).toContain('Rahul (You)');
+    expect(text).toContain('Equal Split');
+    expect(text).toContain('Vibhu');
+    expect(text).toContain('Aditi');
+    expect(text).toContain('Priya');
+    expect(text).toContain('Create Split Expense');
+    expect(renderer.root.findByProps({accessibilityLabel: 'Expense amount'}).props.value).toBe('2,400');
   });
 
-  it('updates shares from the amount, participant, and split method controls', () => {
+  it('shows required-field feedback and blocks an invalid split preview', () => {
     const renderer = renderScreen();
-    const amountField = renderer.root.findByProps({accessibilityLabel: 'Expense amount'});
-    ReactTestRenderer.act(() => amountField.props.onChangeText('3200'));
-    expect(textContent(renderer).join(' ')).toContain('₹800 each = ₹3,200 total');
-
-    ReactTestRenderer.act(() => renderer.root.findByProps({accessibilityLabel: 'Include Priya Nair'}).props.onPress());
-    expect(textContent(renderer).join(' ')).toContain('3 participants');
-    expect(Object.values(renderer.root.findByProps({accessibilityLabel: 'Confirm Split'}).props.accessibilityState)).toContain(false);
-
-    ReactTestRenderer.act(() => renderer.root.findByProps({accessibilityLabel: 'Exact (₹)'}).props.onPress());
-    const exactField = renderer.root.findByProps({accessibilityLabel: 'Vibhanshu Sharma exact share'});
-    ReactTestRenderer.act(() => exactField.props.onChangeText('900'));
-    expect(textContent(renderer).join(' ')).toContain('Adjust shares to match');
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Expense description'}).props.onChangeText('');
+      renderer.root.findByProps({accessibilityLabel: 'Expense amount'}).props.onChangeText('0');
+    });
+    press(renderer, 'Create Split Expense');
+    expect(visibleText(renderer)).toContain('Review the highlighted fields before creating this split.');
+    expect(visibleText(renderer)).not.toContain('Preview created locally. Nothing was sent to a server.');
   });
 
-  it('allows editing the title and note, saves locally, and returns with the back action', () => {
+  it('switches between the three split modes', () => {
     const renderer = renderScreen();
-    const titleField = renderer.root.findByProps({accessibilityLabel: 'Expense title'});
-    ReactTestRenderer.act(() => titleField.props.onChangeText('Lunch bill'));
-    const noteEdit = renderer.root.findByProps({accessibilityLabel: 'Edit note'});
-    ReactTestRenderer.act(() => noteEdit.props.onPress());
-    expect(renderer.root.findByProps({accessibilityLabel: 'Split note'})).toBeTruthy();
+    press(renderer, 'Exact Amount');
+    expect(renderer.root.findByProps({accessibilityLabel: 'Exact Amount'}).props.accessibilityState.selected).toBe(true);
+    expect(renderer.root.findByProps({accessibilityLabel: 'Rahul exact amount'})).toBeTruthy();
 
-    ReactTestRenderer.act(() => renderer.root.findByProps({accessibilityLabel: 'Save Split'}).props.onPress());
-    expect(renderer.root.findByProps({accessibilityLabel: 'Split saved'})).toBeTruthy();
+    press(renderer, 'Custom %');
+    expect(renderer.root.findByProps({accessibilityLabel: 'Custom %'}).props.accessibilityState.selected).toBe(true);
+    expect(renderer.root.findByProps({accessibilityLabel: 'Rahul percentage'})).toBeTruthy();
+  });
 
-    ReactTestRenderer.act(() => renderer.root.findByProps({accessibilityLabel: 'Go back'}).props.onPress());
+  it('recalculates equal shares when amount or participant count changes', () => {
+    const renderer = renderScreen();
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Expense amount'}).props.onChangeText('3200');
+    });
+    expect(visibleText(renderer)).toContain('₹800');
+
+    press(renderer, 'Remove Priya');
+    expect(renderer.root.findAllByType(Text).filter(item => item.props.children === '₹1,066.67')).toHaveLength(2);
+    expect(renderer.root.findAllByType(Text).filter(item => item.props.children === '₹1,066.66')).toHaveLength(1);
+  });
+
+  it('adds a group member and an outside participant, and removes participants', () => {
+    const renderer = renderScreen();
+    press(renderer, 'Add from Group');
+    press(renderer, 'Add Neha');
+    expect(renderer.root.findAllByType(Text).filter(item => item.props.children === '₹480')).toHaveLength(5);
+
+    press(renderer, 'Add Participant');
+    press(renderer, 'Add Meera');
+    expect(renderer.root.findAllByType(Text).filter(item => item.props.children === '₹400')).toHaveLength(6);
+    press(renderer, 'Remove Meera');
+    expect(renderer.root.findAllByType(Text).filter(item => item.props.children === '₹480')).toHaveLength(5);
+  });
+
+  it('validates and reconciles exact participant amounts', () => {
+    const renderer = renderScreen();
+    press(renderer, 'Exact Amount');
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Rahul exact amount'}).props.onChangeText('300');
+    });
+    expect(visibleText(renderer)).toContain('₹300 unallocated');
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Rahul exact amount'}).props.onChangeText('900');
+      renderer.root.findByProps({accessibilityLabel: 'Vibhu exact amount'}).props.onChangeText('500');
+      renderer.root.findByProps({accessibilityLabel: 'Aditi exact amount'}).props.onChangeText('500');
+      renderer.root.findByProps({accessibilityLabel: 'Priya exact amount'}).props.onChangeText('500');
+    });
+    expect(visibleText(renderer)).toContain('₹2,400 allocated · Exact amounts match the total.');
+    press(renderer, 'Create Split Expense');
+    expect(visibleText(renderer)).toContain('Preview created locally. Nothing was sent to a server.');
+  });
+
+  it('shows the remaining percentage and accepts exactly 100 percent', () => {
+    const renderer = renderScreen();
+    press(renderer, 'Custom %');
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Rahul percentage'}).props.onChangeText('40');
+      renderer.root.findByProps({accessibilityLabel: 'Vibhu percentage'}).props.onChangeText('20');
+      renderer.root.findByProps({accessibilityLabel: 'Aditi percentage'}).props.onChangeText('20');
+      renderer.root.findByProps({accessibilityLabel: 'Priya percentage'}).props.onChangeText('10');
+    });
+    expect(visibleText(renderer)).toContain('10.00% remaining');
+
+    ReactTestRenderer.act(() => {
+      renderer.root.findByProps({accessibilityLabel: 'Priya percentage'}).props.onChangeText('20');
+    });
+    expect(visibleText(renderer)).toContain('100.00% assigned · Percentages add up to 100%.');
+    press(renderer, 'Create Split Expense');
+    expect(visibleText(renderer)).toContain('Preview created locally. Nothing was sent to a server.');
+  });
+
+  it('limits notes to 200 characters and updates the counter', () => {
+    const renderer = renderScreen();
+    const note = renderer.root.findByProps({accessibilityLabel: 'Notes'});
+    expect(note.props.maxLength).toBe(200);
+    ReactTestRenderer.act(() => note.props.onChangeText('a'.repeat(240)));
+    expect(renderer.root.findByProps({accessibilityLabel: 'Notes'}).props.value).toHaveLength(200);
+    expect(visibleText(renderer)).toContain('200/200');
+  });
+
+  it('opens date and group selectors and supports back and profile navigation', () => {
+    const renderer = renderScreen();
+    press(renderer, 'Choose date');
+    press(renderer, '11 Sep 2026');
+    expect(visibleText(renderer)).toContain('11 Sep 2026');
+
+    press(renderer, 'Choose group');
+    press(renderer, 'Indiranagar Flatmates');
+    expect(visibleText(renderer)).toContain('Indiranagar Flatmates');
+
+    press(renderer, 'Go back');
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    press(renderer, 'Open Profile');
+    expect(mockNavigate).toHaveBeenCalledWith('Profile');
+  });
+
+  it('opens Split Expense from Groups and returns through the back action', () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(<GroupsScreen />);
+    });
+    if (!renderer) {
+      throw new Error('Groups screen did not render');
+    }
+    press(renderer, 'Add Shared Expense');
+    expect(mockNavigate).toHaveBeenCalledWith('SplitExpense');
+    press(renderer, 'Go back');
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

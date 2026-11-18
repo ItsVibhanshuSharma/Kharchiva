@@ -59,9 +59,8 @@ export function calculateSplit(
   const rawValues = participantIds.map(id => Number(values[id] ?? '0'));
   let shareValues: number[];
 
-  if (mode === 'equal' || mode === 'shares') {
-    const weights = mode === 'equal' ? participantIds.map(() => 1) : rawValues;
-    shareValues = allocateWeightedCents(safeTotal, weights);
+  if (mode === 'equal') {
+    shareValues = allocateWeightedCents(safeTotal, participantIds.map(() => 1));
   } else if (mode === 'percent') {
     const percentages = rawValues.map(value => Number.isFinite(value) ? Math.max(0, value) : 0);
     const percentageTotal = percentages.reduce((sum, value) => sum + value, 0);

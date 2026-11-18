@@ -1,184 +1,128 @@
 import React from 'react';
-import {
-  BackHandler,
-  Keyboard,
-  type KeyboardEvent,
-} from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
-import { BottomNavigation } from '../../components/BottomNavigation';
-import { Text } from '../../components/Text';
-import { TransactionsScreen } from './TransactionsScreen';
-import { formatTransactionCount } from './transactionUtils';
+import {BottomNavigation} from '../../components/BottomNavigation';
+import {Text} from '../../components/Text';
+import {initializeDatabase} from '../../database/initialize';
+import {SQLiteTransactionRepository, type TransactionRepository} from '../../database/repositories/TransactionRepository';
+import {InMemoryFinancialDatabase} from '../../database/testing/InMemoryFinancialDatabase';
+import {TransactionsScreen} from './TransactionsScreen';
+
+jest.mock('@op-engineering/op-sqlite', () => ({open: jest.fn()}));
 
 const mockNavigate = jest.fn();
+const mockRepositoryGetter = jest.fn<Promise<TransactionRepository>, []>();
+jest.mock('@react-navigation/native', () => {
+  const ReactRuntime = require('react') as typeof React;
+  return {
+    useNavigation: () => ({navigate: mockNavigate}),
+    useFocusEffect: (callback: () => void) => ReactRuntime.useEffect(callback, [callback]),
+  };
+});
+jest.mock('../../database/transactionRepository', () => ({getTransactionRepository: () => mockRepositoryGetter()}));
+jest.mock('react-native-safe-area-context', () => ({useSafeAreaInsets: () => ({top: 0, right: 0, bottom: 0, left: 0})}));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
+describe('TransactionsScreen with local SQLite repository', () => {
+  let repository: SQLiteTransactionRepository;
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-}));
+  beforeEach(async () => {
+    mockNavigate.mockClear();
+    const database = new InMemoryFinancialDatabase();
+    await initializeDatabase(database);
+    repository = new SQLiteTransactionRepository(database, {now: () => new Date('2026-10-13T08:00:00.000Z')});
+    await repository.createExpense({amountPaise: 124000, category: 'Groceries', merchant: 'Supermarket Groceries', paymentSource: 'UPI', occurredAt: '2026-09-28T10:00:00+05:30'});
+    await repository.createExpense({amountPaise: 85000, category: 'Food & Dining', merchant: 'Food & Dining', paymentSource: 'Cash', occurredAt: '2026-09-28T11:00:00+05:30'});
+    await repository.createIncome({amountPaise: 2200000, category: 'Income', sourceName: 'Salary', occurredAt: '2026-09-27T09:00:00+05:30'});
+    mockRepositoryGetter.mockReset().mockResolvedValue(repository);
+  });
 
-describe('TransactionsScreen', () => {
-  const renderScreen = (): ReactTestRenderer.ReactTestRenderer => {
+  const renderScreen = async () => {
     let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
-
-    ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(<TransactionsScreen />);
+      await Promise.resolve();
+      await Promise.resolve();
     });
-
-    if (!renderer) {
-      throw new Error('Transactions screen did not render');
-    }
-
+    if (!renderer) throw new Error('Transactions screen did not render');
     return renderer;
   };
 
-  const renderedText = (renderer: ReactTestRenderer.ReactTestRenderer) =>
-    renderer.root
-      .findAllByType(Text)
-      .map(item => {
-        const parts = Array.isArray(item.props.children)
-          ? item.props.children
-          : [item.props.children];
-        return parts
-          .filter(
-            (part): part is string | number =>
-              typeof part === 'string' || typeof part === 'number',
-          )
-          .join('');
-      })
-      .join(' ');
+  const renderedText = (renderer: ReactTestRenderer.ReactTestRenderer) => renderer.root.findAllByType(Text)
+    .map(item => Array.isArray(item.props.children) ? item.props.children.join('') : String(item.props.children ?? ''))
+    .join(' ');
 
-  it('opens Reports from the bottom tab', () => {
-    const renderer = renderScreen();
-    const navigation = renderer.root.findByType(BottomNavigation);
-    mockNavigate.mockClear();
+  const press = async (renderer: ReactTestRenderer.ReactTestRenderer, label: string) => {
+    const target = renderer.root.find(item => item.props.accessibilityLabel === label && typeof item.props.onPress === 'function');
+    await ReactTestRenderer.act(async () => {target.props.onPress(); await Promise.resolve(); await Promise.resolve();});
+  };
 
-    ReactTestRenderer.act(() => navigation.props.onSelect?.('reports'));
-
-    expect(mockNavigate).toHaveBeenCalledWith('Reports');
-  });
-
-
-  it('renders the local transaction summary and sample rows', () => {
-    const renderer = renderScreen();
-
-    const text = renderedText(renderer);
-    expect(text).toContain('8 transactions');
-    expect(text).toContain('Supermarket Groceries');
-    expect(text).toContain('Salary');
-  });
-
-  it.each([
-    [0, '0 transactions'],
-    [1, '1 transaction'],
-    [2, '2 transactions'],
-    [8, '8 transactions'],
-  ])('formats a count of %i', (count, expected) => {
-    expect(formatTransactionCount(count)).toBe(expected);
-  });
-
-  it('filters the transaction list by type', () => {
-    const renderer = renderScreen();
-
-    const expensesFilter = renderer?.root.findAll(
-      item =>
-        item.props.accessibilityLabel === 'Expenses' &&
-        typeof item.props.onPress === 'function',
-    )[0];
-    expect(expensesFilter).toBeDefined();
-
-    ReactTestRenderer.act(() => {
-      expensesFilter?.props.onPress?.();
-    });
-
-    const text = renderedText(renderer);
-    expect(text).toContain('6 transactions');
-    expect(text).not.toContain('Salary');
-  });
-
-  it('shows singular counts for a matching search and zero counts for no results', () => {
-    const renderer = renderScreen();
-    const searchInput = renderer.root.find(
-      item =>
-        item.props.accessibilityLabel === 'Search transactions' &&
-        typeof item.props.onChangeText === 'function',
-    );
-
-    ReactTestRenderer.act(() => {
-      searchInput.props.onChangeText('salary');
-    });
-
-    expect(renderedText(renderer)).toContain('1 transaction');
+  it('loads persisted expense and income rows grouped by date', async () => {
+    const renderer = await renderScreen();
+    expect(renderedText(renderer)).toContain('3 transactions');
+    expect(renderedText(renderer)).toContain('Supermarket Groceries');
     expect(renderedText(renderer)).toContain('Salary');
-
-    ReactTestRenderer.act(() => {
-      searchInput.props.onChangeText('not found');
-    });
-
-    expect(renderedText(renderer)).toContain('0 transactions');
-    expect(renderedText(renderer)).toContain('No transactions found');
+    expect(renderedText(renderer)).toContain('Local · not synced');
   });
 
-  it('hides bottom navigation while the keyboard is open and restores it on dismissal', () => {
-    const listeners = new Map<string, (event: KeyboardEvent) => void>();
-    const addListener = jest
-      .spyOn(Keyboard, 'addListener')
-      .mockImplementation((eventName, listener) => {
-        listeners.set(eventName, listener);
-        return { remove: jest.fn() };
-      });
-    let onHardwareBack:
-      | ((event: { readonly type: string; readonly timeStamp: number }) =>
-          boolean | undefined)
-      | undefined;
-    const addBackListener = jest
-      .spyOn(BackHandler, 'addEventListener')
-      .mockImplementation((_eventName, listener) => {
-        onHardwareBack = listener;
-        return { remove: jest.fn() };
-      });
-    const dismissKeyboard = jest
-      .spyOn(Keyboard, 'dismiss')
-      .mockImplementation(jest.fn());
-    const renderer = renderScreen();
+  it('filters by type, date and category and searches ledger content', async () => {
+    const renderer = await renderScreen();
+    await press(renderer, 'Expenses');
+    expect(renderedText(renderer)).toContain('2 transactions');
+    expect(renderedText(renderer)).not.toContain('Salary');
+    await press(renderer, 'All');
+    const search = renderer.root.find(item => item.props.accessibilityLabel === 'Search transactions');
+    ReactTestRenderer.act(() => search.props.onChangeText('salary'));
+    expect(renderedText(renderer)).toContain('Salary');
+    ReactTestRenderer.act(() => search.props.onChangeText(''));
+    await press(renderer, 'Filter by category');
+    await press(renderer, 'Food & Dining');
+    expect(renderedText(renderer)).toContain('Food & Dining');
+    expect(renderedText(renderer)).not.toContain('Supermarket Groceries');
+    await press(renderer, 'Filter by date');
+    const monthLabel = new Date('2026-09-01T00:00:00').toLocaleDateString('en-IN', {month: 'long', year: 'numeric'});
+    await press(renderer, monthLabel);
+    expect(renderedText(renderer)).toContain('1 transaction');
+  });
 
-    expect(renderedText(renderer)).toContain('Report');
+  it('shows empty and retryable error states', async () => {
+    const list = jest.spyOn(repository, 'listTransactions').mockRejectedValueOnce(new Error('unavailable')).mockResolvedValueOnce([]);
+    const renderer = await renderScreen();
+    expect(renderedText(renderer)).toContain('Couldn’t load transactions');
+    await press(renderer, 'Retry loading transactions');
+    expect(renderedText(renderer)).toContain('No transactions found');
+    list.mockRestore();
+  });
 
-    ReactTestRenderer.act(() => {
-      listeners.get('keyboardDidShow')?.({
-        duration: 0,
-        easing: 'keyboard',
-        endCoordinates: { screenX: 0, screenY: 0, width: 0, height: 0 },
-      });
+  it('opens an entry straight in the edit form with a single tap', async () => {
+    const renderer = await renderScreen();
+    const [groceries] = (await repository.listTransactions()).filter(item => item.title === 'Supermarket Groceries');
+    mockNavigate.mockClear();
+    await press(renderer, 'Edit expense Supermarket Groceries');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('AddExpense', {type: 'expense', editId: groceries.id});
+    // No intermediate details popup.
+    expect(renderedText(renderer)).not.toContain('Transaction details');
+  });
+
+  it('refreshes the list when returning after an edit or delete', async () => {
+    const renderer = await renderScreen();
+    expect(renderedText(renderer)).toContain('Supermarket Groceries');
+    const [groceries] = (await repository.listTransactions()).filter(item => item.title === 'Supermarket Groceries');
+    await repository.deleteTransaction(groceries.id, 'expense');
+    await ReactTestRenderer.act(async () => {
+      renderer.update(<TransactionsScreen key="refocus" />);
+      await Promise.resolve();
+      await Promise.resolve();
     });
-    expect(renderedText(renderer)).not.toContain('Reports');
+    expect(renderedText(renderer)).not.toContain('Supermarket Groceries');
+    expect(renderedText(renderer)).toContain('2 transactions');
+  });
 
-    let backHandled = false;
-    ReactTestRenderer.act(() => {
-      backHandled =
-        onHardwareBack?.({
-          type: 'hardwareBackPress',
-          timeStamp: Date.now(),
-        }) ?? false;
-    });
-    expect(backHandled).toBe(true);
-    expect(dismissKeyboard).toHaveBeenCalledTimes(1);
-    expect(renderedText(renderer)).not.toContain('Reports');
-
-    ReactTestRenderer.act(() => {
-      listeners.get('keyboardDidHide')?.({
-        duration: 0,
-        easing: 'keyboard',
-        endCoordinates: { screenX: 0, screenY: 0, width: 0, height: 0 },
-      });
-    });
-    expect(renderedText(renderer)).toContain('Report');
-
-    addListener.mockRestore();
-    addBackListener.mockRestore();
-    dismissKeyboard.mockRestore();
+  it('retains profile and shared bottom navigation actions', async () => {
+    const renderer = await renderScreen();
+    const profile = renderer.root.findAll(item => item.props.accessibilityLabel === 'Profile' && typeof item.props.onPress === 'function')[0];
+    await ReactTestRenderer.act(async () => {profile.props.onPress();});
+    expect(mockNavigate).toHaveBeenCalledWith('Profile');
+    const navigation = renderer.root.findByType(BottomNavigation);
+    expect(navigation.props.items.map((item: {id: string}) => item.id)).toEqual(['home', 'transactions', 'add', 'statement', 'profile']);
   });
 });

@@ -366,7 +366,7 @@ Cross-module communication should happen through well-defined services/interface
 Responsibilities:
 
 * Phone OTP authentication  
-* Google Sign-In  
+* Google Sign-In (later milestone; not implemented by phone OTP MVP)
 * Token management  
 * Session management  
 * Authentication guards  
@@ -907,8 +907,10 @@ JSON
 
 Example:
 
-POST   /api/v1/auth/phone/request  
-POST   /api/v1/auth/phone/verify
+POST   /api/v1/auth/phone/request-otp
+POST   /api/v1/auth/phone/verify-otp
+POST   /api/v1/auth/refresh
+POST   /api/v1/auth/logout
 
 GET    /api/v1/me
 
@@ -1300,4 +1302,3 @@ Cloudflare R2
 Resend
 
 As traffic increases:
-

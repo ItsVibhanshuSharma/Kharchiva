@@ -238,6 +238,14 @@ deletedAt
 
 Authentication identifiers should have appropriate uniqueness constraints.
 
+## **Authentication MVP transient collections**
+
+The phone OTP MVP stores short-lived challenges in `otp_challenges`. Each record contains a request UUID, phone number, keyed OTP hash and salt, keyed source-IP hash, attempt count, expiry and consumption timestamp. A TTL index on `expiresAt` removes expired challenges. Raw OTPs are never stored.
+
+Refresh sessions are stored in `auth_sessions` with user ObjectId, SHA-256 hash of the opaque refresh token, expiry and revocation timestamp. A TTL index removes expired sessions; active sessions are checked by the JWT guard so logout revocation takes effect immediately.
+
+OTP request counters are stored in `auth_rate_limits`, keyed by HMAC-hashed phone/IP key and fixed-window start. A unique compound index makes increments atomic, and a TTL index removes old buckets. These collections contain no raw refresh tokens or IP addresses.
+
 ---
 
 # **6\. Expenses Collection**
@@ -2130,4 +2138,3 @@ Personal money and shared money remain separate domains.
 The database is now ready to be used as the source of truth for the next document:
 
 **Kharchiva — API Contract v1.0**
-

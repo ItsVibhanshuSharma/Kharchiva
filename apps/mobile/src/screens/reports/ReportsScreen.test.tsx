@@ -109,7 +109,7 @@ describe('ReportsScreen', () => {
       .map(item => item.props.accessibilityLabel);
 
     expect(labels).toEqual(
-      expect.arrayContaining(['Home', 'Transactions', 'Add expense']),
+      expect.arrayContaining(['Home', 'Transactions', 'Add entry']),
     );
   });
 

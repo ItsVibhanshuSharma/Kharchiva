@@ -32,7 +32,6 @@ describe('splitCalculator', () => {
     const modes = [
       calculateSplit(10001, ['a', 'b', 'c'], 'equal', {}),
       calculateSplit(10001, ['a', 'b', 'c'], 'percent', {a: '33.33', b: '33.33', c: '33.34'}),
-      calculateSplit(10001, ['a', 'b', 'c'], 'shares', {a: '1', b: '2', c: '1'}),
       calculateSplit(10001, ['a', 'b', 'c'], 'exact', {a: '33.34', b: '33.33', c: '33.34'}),
     ];
 

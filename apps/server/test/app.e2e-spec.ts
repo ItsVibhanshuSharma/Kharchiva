@@ -2,15 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { HealthModule } from '../src/common/health/health.module';
+import { HealthController } from '../src/common/health/health.controller';
+import { getConnectionToken } from '@nestjs/mongoose';
 
 describe('HealthController (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [HealthModule],
-    }).compile();
+    const builder = Test.createTestingModule({
+      controllers: [HealthController],
+      providers: [{ provide: getConnectionToken(), useValue: { readyState: 1 } }],
+    });
+    const moduleFixture: TestingModule = await builder.compile();
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
@@ -32,6 +35,6 @@ describe('HealthController (e2e)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    if (app) await app.close();
   });
 });

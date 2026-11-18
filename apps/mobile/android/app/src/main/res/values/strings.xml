@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">KharchivaMobile</string>
+    <string name="quick_add_label">Kharchiva quick add</string>
+    <string name="tile_label">Add expense</string>
+    <string name="widget_description">Add an expense or income without opening the app</string>
+    <string name="widget_expense">− Kharch</string>
+    <string name="widget_income">+ Income</string>
+    <string name="widget_voice">🎤 Bolo</string>
+    <string name="shortcut_expense_short">Add expense</string>
+    <string name="shortcut_expense_long">Add an expense</string>
+    <string name="shortcut_income_short">Add income</string>
+    <string name="shortcut_income_long">Add income</string>
+    <string name="shortcut_voice_short">Bolkar add karo</string>
+    <string name="shortcut_voice_long">Add by speaking</string>
 </resources>

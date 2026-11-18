@@ -34,6 +34,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Kharchiva uses the microphone when you tap the mic, so you can add income or expenses by speaking.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Kharchiva turns what you say into an income or expense entry. You confirm every entry before it is saved.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>

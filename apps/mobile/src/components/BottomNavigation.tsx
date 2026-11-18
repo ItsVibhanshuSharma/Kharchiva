@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
 import { bottomSafeAreaInset } from './layoutInsets';
 import { Text } from './Text';
+import { ArrowLeftRight, FileText, House, Plus, UserRound, type LucideIcon } from './icons';
 
 export { BOTTOM_NAVIGATION_CONTENT_INSET } from './layoutInsets';
 
@@ -27,12 +28,10 @@ export function BottomNavigation({ items, onSelect }: BottomNavigationProps) {
           accessibilityRole="button"
           accessibilityLabel={
             item.id === 'add'
-              ? 'Add expense'
+              ? 'Add entry'
               : item.id === 'transactions'
                 ? 'Transactions'
-                : item.id === 'reports'
-                  ? 'Reports'
-                  : item.label
+                : item.label
           }
           accessibilityState={{ selected: Boolean(item.active) }}
           key={item.id}
@@ -44,13 +43,13 @@ export function BottomNavigation({ items, onSelect }: BottomNavigationProps) {
         >
           {item.id === 'add' ? (
             <>
-              <View style={styles.addCircle}><Text style={styles.addGlyph}>＋</Text></View>
-              <Text variant="caption" style={styles.addCaption}>Add Expense</Text>
+              <View style={styles.addCircle}><Plus color={colors.white} size={30} strokeWidth={2.6} /></View>
+              <Text variant="caption" style={styles.addCaption}>Add</Text>
             </>
           ) : (
             <>
               <View style={[styles.iconFrame, item.active && styles.activeIconFrame]}>
-                <Text style={[styles.icon, item.active && styles.activeIcon]}>{iconFor(item.id)}</Text>
+                {renderIcon(item.id, Boolean(item.active))}
               </View>
               <Text variant="caption" style={[styles.label, item.active && styles.activeLabel]}>{item.label}</Text>
             </>
@@ -61,16 +60,18 @@ export function BottomNavigation({ items, onSelect }: BottomNavigationProps) {
   );
 }
 
-function iconFor(id: string) {
-  switch (id) {
-    case 'home': return '⌂';
-    case 'transactions': return '↕';
-    case 'reports': return '▤';
-    case 'profile': return '♙';
-    default: return '•';
-  }
-}
+const ICONS: Record<string, LucideIcon> = {
+  home: House,
+  transactions: ArrowLeftRight,
+  statement: FileText,
+  profile: UserRound,
+};
 
+function renderIcon(id: string, active: boolean) {
+  const Icon = ICONS[id];
+  if (!Icon) return <Text style={styles.icon}>•</Text>;
+  return <Icon color={active ? colors.primary : colors.textMuted} size={22} strokeWidth={active ? 2.4 : 2} />;
+}
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
@@ -103,7 +104,6 @@ const styles = StyleSheet.create({
   iconFrame: { alignItems: 'center', borderRadius: radius.full, height: 31, justifyContent: 'center', width: 38 },
   activeIconFrame: { backgroundColor: colors.primaryMuted },
   icon: { color: colors.textMuted, fontSize: 22, lineHeight: 26 },
-  activeIcon: { color: colors.primary },
   label: {
     color: colors.textMuted,
     fontSize: 10,
@@ -131,6 +131,5 @@ const styles = StyleSheet.create({
     top: -15,
     width: 58,
   },
-  addGlyph: { color: colors.white, fontSize: 31, fontWeight: '400', lineHeight: 35, marginTop: -2 },
   addCaption: { color: colors.primary, fontSize: 10, fontWeight: '600' },
 });

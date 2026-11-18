@@ -6,6 +6,8 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import App from '../App';
 
+jest.mock('@op-engineering/op-sqlite', () => ({open: jest.fn()}));
+
 jest.mock('@react-navigation/native', () => {
   const ReactModule = require('react');
   return {

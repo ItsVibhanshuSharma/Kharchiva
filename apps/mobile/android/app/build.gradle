@@ -20,6 +20,8 @@ react {
     reactNativeDir = file("../../../../node_modules/react-native")
     codegenDir = file("../../../../node_modules/@react-native/codegen")
     cliFile = file("../../../../node_modules/react-native/cli.js")
+    // Monorepo: react-native is hoisted to the repo root and hermesc ships in hermes-compiler.
+    hermesCommand = "$rootDir/../../../node_modules/hermes-compiler/hermesc/%OS-BIN%/hermesc"
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -107,6 +109,21 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+// Phone testing over Wi-Fi: the React Native plugin bakes the first network IP it finds
+// into debug builds, which can be a VPN address. Pass -PdevServerIp=<laptop Wi-Fi IP>
+// to point the debug APK at Metro on the right network. Registered after the plugin,
+// so this value wins.
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        def devServerIp = project.findProperty("devServerIp")
+        if (devServerIp) {
+            variant.resValues.put(
+                variant.makeResValueKey("string", "react_native_dev_server_ip"),
+                new com.android.build.api.variant.ResValue(devServerIp.toString(), "Metro host for phone testing"))
         }
     }
 }

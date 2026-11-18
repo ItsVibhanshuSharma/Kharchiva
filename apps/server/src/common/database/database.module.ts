@@ -6,12 +6,16 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri:
-          config.get<string>('MONGODB_URI') ??
-          'mongodb://127.0.0.1:27017/kharchiva_dev',
-        autoIndex: config.get<string>('NODE_ENV') !== 'production',
-      }),
+      useFactory: (config: ConfigService) => {
+        const uri = config.get<string>('MONGODB_URI');
+        if (!uri) {
+          throw new Error('MONGODB_URI must be configured');
+        }
+        return {
+          uri,
+          autoIndex: config.get<string>('NODE_ENV') !== 'production',
+        };
+      },
     }),
   ],
   exports: [MongooseModule],

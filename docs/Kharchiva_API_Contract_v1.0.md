@@ -275,6 +275,10 @@ Response:
     "expiresAt": "2026-09-30T04:35:00.000Z"  
   }  
 }  
+
+Development-only extension: when `AUTH_DEV_OTP_ENABLED=true` and `NODE_ENV` is `development` or `test`, the response also includes `debugOtp` so local development can verify the challenge without an SMS provider. Configuration rejects the flag in every other environment. Production requires a configured SMS provider adapter; when absent, the endpoint returns `503 OTP delivery is not configured`.
+
+MVP limits: OTP expires in five minutes, permits five verification attempts, and OTP requests are limited to three per phone number and ten per source IP per fifteen-minute window. Re-requesting an OTP invalidates the previous outstanding challenge for that phone number. Invalid/expired OTPs return `401`; exhausted request limits return `429`.
 ---
 
 ## **6.2 Verify Phone OTP**
@@ -339,6 +343,8 @@ Response:
 
 POST /api/v1/auth/refresh
 
+Refresh tokens are opaque random values stored only as hashes. A successful refresh rotates the refresh token atomically; the previous token cannot be used again. Sessions expire after 30 days. Access JWTs use HS256, issuer `kharchiva-api`, audience `kharchiva-mobile`, an ObjectId `sub` and `sid`, purpose `access`, and a 15-minute maximum lifetime. The API guard checks that the session remains active.
+
 Request:
 
 {  
@@ -365,6 +371,8 @@ Auth:
 Required
 
 Request may contain the refresh token/session identifier.
+
+The current session is identified by the authenticated access token's `sid` claim and is revoked by default. A supplied refresh token may be used to select the session to revoke, but it must belong to the authenticated user.
 
 Response:
 
@@ -2697,4 +2705,3 @@ React Native
 The next implementation document should be:
 
 **Kharchiva — Backend Architecture & NestJS Module Design v1.0**
-

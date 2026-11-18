@@ -1234,77 +1234,74 @@ Out of scope.
 
 ---
 
-# **48\. MVP Scope**
+# **48\. MVP Scope (v1 — Simple)**
 
-The first production MVP should focus on the smallest set of features that proves the core product idea.
+v1 is intentionally small. A user should answer three questions at a glance:
 
-## **P0 — Must Have**
+1. How much came in this month?  
+2. How much went out this month?  
+3. How much is left (shown with a `+` or `−` sign)?
+
+## **v1 — Must Have**
 
 ### **Authentication**
 
-* Login/signup  
+* Login/signup (phone OTP)  
 * Basic profile
 
-### **Expense**
+### **Home (single screen)**
 
-* Quick Expense  
-* Manual expense  
-* Categories  
-* Edit/delete  
-* Search/filter
+* Month switcher (previous / next month)  
+* Remaining = Income − Expenses, shown signed: `+₹1,35,000` (green) or `−₹5,000` (red)  
+* Total income and total spent for the month  
+* Two primary actions: **+ Income** and **− Expense**  
+* This month's entries, income with `+` and expenses with `−`
 
-### **Income**
+Example: income ₹2,00,000; rent ₹50,000, grocery ₹12,000, bill ₹3,000 → spent ₹65,000 → remaining **+₹1,35,000**.
 
-* Income entry  
-* Monthly income
+These totals are always calculated from the entries, never stored. Months follow India time (Asia/Kolkata).
 
-### **Dashboard**
+### **Add entry**
 
-* Income  
-* Expense  
-* Savings  
-* Category summary
+* One form for income or expense  
+* Required: amount, category. Optional: note, date (defaults to today)  
+* Expense extras (optional): merchant, payment source  
+* Income extra (optional): source name
 
-### **Budget**
+### **Transactions**
 
-* Category budget  
-* Budget usage
+* Full history with search/filter, edit and delete
 
-### **History**
+### **Categories**
 
-* Daily/monthly transaction history
+* Default expense and income categories
 
-### **Recurring**
+### **Offline**
 
-* Basic recurring expense
-
-### **Reports**
-
-* Monthly report  
-* Category report
-
-### **Data Recovery**
-
-* Reminder  
-* Nothing Today  
-* Catch-up
+* Entries are saved locally first. Sync runs in the background and has no screen of its own in v1.
 
 ---
 
-# **49\. MVP P1 Features**
+# **49\. Later (not in v1)**
 
-After core MVP:
+Everything below is kept as product direction but is **not** part of v1. Screens that already exist in the app for these features are parked: they are not reachable from navigation.
+
+## **Next (after v1 is stable)**
+
+* Budgets (category budget and usage)  
+* Recurring expenses and recurring income  
+* Reports (monthly, category) and charts  
+* Data recovery: reminder, Nothing Today, catch-up  
+* Quick Expense outside the app (widget / notification action; needs a feasibility prototype)
+
+## **Then**
 
 * Google Sheets sync  
 * Voice expense entry  
-* Advanced reports  
-* PDF/CSV/Excel export  
+* Export (PDF/CSV/Excel)  
 * Goals  
-* Personal/Business classification  
-* Business reports  
-* Split expenses
-
----
+* Personal/Business classification and business reports  
+* Split expenses and groups
 
 # **50\. Phase 2**
 

@@ -3,44 +3,37 @@ import ReactTestRenderer from 'react-test-renderer';
 import { Button } from '../components/Button';
 import { Text } from '../components/Text';
 import { AppNavigator } from './AppNavigator';
-import { RootStackRouteName } from './types';
+import { ACTIVE_ROUTES } from './types';
+
+jest.mock('@op-engineering/op-sqlite', () => ({open: jest.fn()}));
+jest.mock('../database/transactionRepository', () => ({
+  getTransactionRepository: () => Promise.resolve({
+    listTransactions: () => Promise.resolve([]),
+    createExpense: jest.fn(),
+    createIncome: jest.fn(),
+  }),
+}));
 
 describe('App navigator foundation', () => {
-  it('registers the expected app screens', () => {
-    const routeNames: RootStackRouteName[] = [
-      'Welcome',
-      'PhoneVerification',
-      'OTPVerification',
-      'ProfileSetup',
-      'Home',
-      'Transactions',
-      'Reports',
-      'BudgetDetails',
-      'AddExpense',
-      'Recurring',
-      'Profile',
-      'ExportStatement',
-      'OfflineSync',
-      'Groups',
-      'SplitExpense',
-    ];
+  afterEach(async () => {
+    // Let Home's async month load settle before Jest tears the environment down.
+    await ReactTestRenderer.act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+  });
 
-    expect(routeNames).toEqual([
+  it('registers only the v1 screens', () => {
+    expect(ACTIVE_ROUTES).toEqual([
       'Welcome',
       'PhoneVerification',
       'OTPVerification',
       'ProfileSetup',
       'Home',
       'Transactions',
-      'Reports',
-      'BudgetDetails',
       'AddExpense',
-      'Recurring',
       'Profile',
-      'ExportStatement',
-      'OfflineSync',
-      'Groups',
-      'SplitExpense',
+      'Mpin',
+      'Statement',
     ]);
   });
 
@@ -115,12 +108,12 @@ describe('App navigator foundation', () => {
     expect(
       renderer?.root
         .findAllByType(Text)
-        .some(text => text.props.children === 'Available balance'),
+        .some(text => text.props.children === 'Remaining this month'),
     ).toBe(true);
 
-    const addExpenseButton = renderer?.root
-      .findAllByType(Button)
-      .find(button => button.props.children === '+  Add expense');
+    const addExpenseButton = renderer?.root.findByProps({
+      accessibilityLabel: 'Add expense',
+    });
 
     ReactTestRenderer.act(() => {
       addExpenseButton?.props.onPress?.();
@@ -141,7 +134,7 @@ describe('App navigator foundation', () => {
     });
 
     const addTab = renderer?.root.findByProps({
-      accessibilityLabel: 'Add expense',
+      accessibilityLabel: 'Add entry',
     });
 
     expect(addTab).toBeDefined();
@@ -157,13 +150,11 @@ describe('App navigator foundation', () => {
     ).toBe(true);
   });
 
-  it('opens Reports from the Home bottom navigation', () => {
+  it('does not offer Reports, Groups, Export or Sync from Home', () => {
     let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
-
     ReactTestRenderer.act(() => {
       renderer = ReactTestRenderer.create(<AppNavigator />);
     });
-
     const pressButton = (label: string) => {
       const button = renderer?.root
         .findAllByType(Button)
@@ -172,27 +163,14 @@ describe('App navigator foundation', () => {
         button?.props.onPress?.();
       });
     };
-
     pressButton('Get started');
     pressButton('Send OTP');
     pressButton('Verify');
     pressButton('Continue');
-
-    const reportsTab = renderer?.root.findAll(
-      tab =>
-        tab.props.accessibilityLabel === 'Reports' &&
-        typeof tab.props.onPress === 'function',
-    )[0];
-    expect(reportsTab).toBeDefined();
-
-    ReactTestRenderer.act(() => {
-      reportsTab?.props.onPress?.();
-    });
-
-    expect(
-      renderer?.root
-        .findAllByType(Text)
-        .some(text => text.props.children === 'FINANCIAL STORY & INSIGHTS'),
-    ).toBe(true);
+    const labels = renderer?.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .map(node => node.props.accessibilityLabel);
+    expect(labels).toEqual(expect.arrayContaining(['Home', 'Transactions', 'Add entry', 'Profile']));
+    expect(labels).not.toContain('Reports');
   });
 });

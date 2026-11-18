@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the app icon. Each opens the quick-add window, not the full app. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_expense"
+        android:enabled="true"
+        android:icon="@drawable/ic_quick_minus"
+        android:shortcutShortLabel="@string/shortcut_expense_short"
+        android:shortcutLongLabel="@string/shortcut_expense_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kharchivamobile"
+            android:targetClass="com.kharchivamobile.QuickAddActivity">
+            <extra android:name="mode" android:value="expense" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_income"
+        android:enabled="true"
+        android:icon="@drawable/ic_quick_plus"
+        android:shortcutShortLabel="@string/shortcut_income_short"
+        android:shortcutLongLabel="@string/shortcut_income_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kharchivamobile"
+            android:targetClass="com.kharchivamobile.QuickAddActivity">
+            <extra android:name="mode" android:value="income" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="quick_voice"
+        android:enabled="true"
+        android:icon="@drawable/ic_quick_mic"
+        android:shortcutShortLabel="@string/shortcut_voice_short"
+        android:shortcutLongLabel="@string/shortcut_voice_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kharchivamobile"
+            android:targetClass="com.kharchivamobile.QuickAddActivity">
+            <extra android:name="mode" android:value="voice" />
+        </intent>
+    </shortcut>
+</shortcuts>
