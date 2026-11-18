@@ -87,4 +87,16 @@ describe('ManageListsScreen', () => {
     expect(getCatalog().paymentSources).toEqual([]);
     alert.mockRestore();
   });
+  it('hides a default category in one tap and brings it back', async () => {
+    const renderer = await render();
+    const chip = () => renderer.root.find(node => node.props.accessibilityLabel === 'Show Fuel' && typeof node.props.onPress === 'function');
+    expect(chip().props.accessibilityState).toEqual({ checked: true });
+    await press(renderer, 'Show Fuel');
+    expect(getCatalog().hiddenDefaults).toEqual(['expense:Fuel']);
+    expect(chip().props.accessibilityState).toEqual({ checked: false });
+    await press(renderer, 'Show Fuel');
+    expect(getCatalog().hiddenDefaults).toEqual([]);
+    // "Other" is always kept, so it has no chip.
+    expect(renderer.root.findAll(node => node.props.accessibilityLabel === 'Show Other')).toHaveLength(0);
+  });
 });

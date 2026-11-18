@@ -59,6 +59,7 @@ function cleanEmoji(emoji: string | null | undefined): string | null {
 }
 
 const text = (row: DatabaseRow, key: string) => String(row[key] ?? '');
+const HIDDEN_DEFAULTS_KEY = 'hidden_categories';
 
 /**
  * The user's own categories, payment sources and budgets. Built-in lists stay in
@@ -101,6 +102,19 @@ export class SQLiteCatalogRepository {
     return this.softDelete('custom_categories', id);
   }
 
+  /** Built-in categories the user chose to hide, as `type:name` keys. */
+  async listHiddenDefaults(): Promise<string[]> {
+    const result = await this.query('SELECT value FROM app_settings WHERE key = ?;', [HIDDEN_DEFAULTS_KEY]);
+    try {
+      const parsed: unknown = JSON.parse(String(result.rows?.[0]?.value ?? '[]'));
+      return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+  async setHiddenDefaults(keys: string[]): Promise<void> {
+    await this.query('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?);', [HIDDEN_DEFAULTS_KEY, JSON.stringify([...new Set(keys)])]);
+  }
   async listPaymentSources(): Promise<CustomPaymentSource[]> {
     const rows = await this.activeRows('payment_sources');
     return rows.map(row => ({ id: text(row, 'id'), name: text(row, 'name'), createdAt: text(row, 'createdAt') }));

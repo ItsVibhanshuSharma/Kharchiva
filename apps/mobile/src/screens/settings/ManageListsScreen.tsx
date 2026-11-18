@@ -13,8 +13,11 @@ import type { ListEntryType } from '../../database/repositories/CatalogRepositor
 import {
   addCustomCategory,
   addPaymentSource,
+  isDefaultHidden,
   removeCustomCategory,
   removePaymentSource,
+  setDefaultHidden,
+  UNHIDEABLE_CATEGORY,
   useCatalog,
 } from '../../features/catalog/catalogStore';
 import { NewItemSheet } from '../../features/catalog/NewItemSheet';
@@ -44,6 +47,11 @@ export function ManageListsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const catalog = useCatalog();
   const [adding, setAdding] = useState<Adding>(null);
+  const toggleDefault = (type: ListEntryType, name: string, hide: boolean) => {
+    setDefaultHidden(type, name, hide)
+      .then(() => showSnackbar({ message: hide ? `"${name}" chhupa diya. Purani entries waise hi rahengi.` : `"${name}" wapas aa gaya` }))
+      .catch(() => showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' }));
+  };
 
   const categorySection = (type: ListEntryType) => {
     const builtIn: readonly string[] = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
@@ -78,7 +86,24 @@ export function ManageListsScreen() {
             <Text variant="label" style={styles.addText}>Nayi category</Text>
           </Pressable>
         </View>
-        <Text variant="caption" style={styles.defaults}>{`Default: ${builtIn.join(', ')}`}</Text>
+        <Text variant="caption" style={styles.defaults}>Default categories. Jo use nahi karte, tap karke chhupao.</Text>
+        <View style={styles.chips}>
+          {builtIn.filter(name => name !== UNHIDEABLE_CATEGORY).map(name => {
+            const hidden = isDefaultHidden(catalog, type, name);
+            return (
+              <Pressable
+                accessibilityRole="switch"
+                accessibilityLabel={`Show ${name}`}
+                accessibilityState={{ checked: !hidden }}
+                key={name}
+                onPress={() => toggleDefault(type, name, !hidden)}
+                style={[styles.chip, hidden && styles.chipHidden]}
+              >
+                <Text variant="caption" style={hidden ? styles.chipTextHidden : styles.chipText}>{name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     );
   };
@@ -144,5 +169,10 @@ const styles = StyleSheet.create({
   removeButton: { alignItems: 'center', backgroundColor: '#FDECEE', borderRadius: radius.full, height: 34, justifyContent: 'center', width: 34 },
   addRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, minHeight: 40 },
   addText: { color: colors.primary },
-  defaults: { marginHorizontal: 2 },
+  defaults: { marginHorizontal: 2, marginTop: spacing.xs },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: { backgroundColor: colors.selected, borderColor: colors.primaryMuted, borderRadius: radius.full, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 6 },
+  chipHidden: { backgroundColor: colors.surface, borderColor: colors.border, borderStyle: 'dashed' },
+  chipText: { color: colors.text, fontWeight: '600' },
+  chipTextHidden: { color: colors.textMuted, textDecorationLine: 'line-through' },
 });

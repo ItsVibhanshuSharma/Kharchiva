@@ -11,6 +11,7 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
   /** Simple list tables, handled generically: insert with named columns, select active rows, update by id. */
   private readonly lists: Record<string, Row[]> = {custom_categories: [], payment_sources: [], budgets: [], recurring_items: []};
   private readonly days = new Map<string, Row>();
+  private readonly settings = new Map<string, Scalar>();
 
   async execute(query: string, params: Scalar[] = []): Promise<QueryResult> {
     this.statements.push({query, params});
@@ -23,6 +24,14 @@ export class InMemoryFinancialDatabase implements DatabaseAdapter {
     if (lower.startsWith('insert into schema_migrations')) {
       this.versions.add(Number(params[0]));
       return this.result([], 1);
+    }
+    if (lower.startsWith('insert or replace into app_settings')) {
+      this.settings.set(String(params[0]), params[1]);
+      return this.result([], 1);
+    }
+    if (lower.startsWith('select value from app_settings where key = ?')) {
+      const value = this.settings.get(String(params[0]));
+      return this.result(value === undefined ? [] : [{value}]);
     }
     if (lower.startsWith('insert or replace into day_status')) {
       const [date, status, createdAt, updatedAt] = params;

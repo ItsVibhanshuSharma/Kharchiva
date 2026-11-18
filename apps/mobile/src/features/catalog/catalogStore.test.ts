@@ -12,6 +12,7 @@ import {
   removeCustomCategory,
   resetCatalogForTests,
   setBudget,
+  setDefaultHidden,
 } from './catalogStore';
 
 jest.mock('@op-engineering/op-sqlite', () => ({ open: jest.fn() }));
@@ -45,6 +46,23 @@ describe('catalogStore', () => {
     expect(nameProblem('   ', [])).toBe('Naam likho.');
   });
 
+  it('hides and shows built-in categories, saved across loads, but never "Other"', async () => {
+    await setDefaultHidden('expense', 'Fuel', true);
+    await setDefaultHidden('expense', 'Other', true);
+    expect(categoryNames(getCatalog(), 'expense')).not.toContain('Fuel');
+    expect(categoryNames(getCatalog(), 'expense')).toContain('Other');
+    // Same name on the other side is untouched.
+    expect(categoryNames(getCatalog(), 'income')).toContain('Salary');
+
+    resetCatalogForTests();
+    await loadCatalog(true);
+    expect(getCatalog().hiddenDefaults).toEqual(['expense:Fuel']);
+    // A hidden built-in name still cannot be reused for a custom category.
+    await expect(addCustomCategory({ name: 'fuel', type: 'expense' })).rejects.toThrow('pehle se hai');
+
+    await setDefaultHidden('expense', 'Fuel', false);
+    expect(categoryNames(getCatalog(), 'expense')).toContain('Fuel');
+  });
   it('drops a budget along with its category', async () => {
     const gym = await addCustomCategory({ name: 'Gym', type: 'expense' });
     await setBudget('Gym', 1500_00);

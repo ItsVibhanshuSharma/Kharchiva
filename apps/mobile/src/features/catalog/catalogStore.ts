@@ -13,11 +13,13 @@ export type CatalogState = {
   customCategories: CustomCategory[];
   paymentSources: CustomPaymentSource[];
   budgets: Budget[];
+  /** Built-in categories the user hid, as `type:name` keys (see `hiddenKey`). */
+  hiddenDefaults: string[];
   /** False until the first load finishes; built-in lists work either way. */
   loaded: boolean;
 };
 
-const EMPTY: CatalogState = { customCategories: [], paymentSources: [], budgets: [], loaded: false };
+const EMPTY: CatalogState = { customCategories: [], paymentSources: [], budgets: [], hiddenDefaults: [], loaded: false };
 
 let state: CatalogState = EMPTY;
 let inFlight: Promise<void> | null = null;
@@ -46,12 +48,13 @@ export function loadCatalog(force = false): Promise<void> {
   inFlight = (async () => {
     try {
       const repository = await getCatalogRepository();
-      const [customCategories, paymentSources, budgets] = await Promise.all([
+      const [customCategories, paymentSources, budgets, hiddenDefaults] = await Promise.all([
         repository.listCategories(),
         repository.listPaymentSources(),
         repository.listBudgets(),
+        repository.listHiddenDefaults().catch(() => [] as string[]),
       ]);
-      setState({ customCategories, paymentSources, budgets, loaded: true });
+      setState({ customCategories, paymentSources, budgets, hiddenDefaults, loaded: true });
     } catch {
       // Keep whatever we had; built-in categories still work.
     } finally {
@@ -72,8 +75,17 @@ export function useCatalog(): CatalogState {
 
 // ---------------------------------------------------------------- selectors
 
+/** "Other" is the fallback in every list, so it cannot be hidden. */
+export const UNHIDEABLE_CATEGORY = 'Other';
+export const hiddenKey = (type: ListEntryType, name: string) => `${type}:${name}`;
+export function isDefaultHidden(catalog: CatalogState, type: ListEntryType, name: string): boolean {
+  return name !== UNHIDEABLE_CATEGORY && catalog.hiddenDefaults.includes(hiddenKey(type, name));
+}
+/** Categories to offer when picking: built-in ones the user has not hidden, then their own, then "Other". */
 export function categoryNames(catalog: CatalogState, type: ListEntryType): string[] {
-  const builtIn: readonly string[] = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const builtIn: readonly string[] = (type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).filter(
+    name => !isDefaultHidden(catalog, type, name),
+  );
   const custom = catalog.customCategories.filter(item => item.type === type).map(item => item.name);
   // "Other" stays last so the user's own categories sit next to the built-in ones.
   const withoutOther = builtIn.filter(name => name !== 'Other');
@@ -89,6 +101,11 @@ export function customCategoryFor(catalog: CatalogState, name: string, type: Lis
   return catalog.customCategories.find(item => item.type === type && item.name.toLowerCase() === key);
 }
 
+/** Names already taken, hidden built-ins included, so a custom one cannot clash with them. */
+function takenCategoryNames(type: ListEntryType): string[] {
+  const builtIn: readonly string[] = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  return [...builtIn, ...state.customCategories.filter(item => item.type === type).map(item => item.name)];
+}
 /** Message for an invalid new name, or null when it can be added. */
 export function nameProblem(name: string, existing: readonly string[]): string | null {
   const trimmed = name.trim().replace(/\s+/g, ' ');
@@ -105,7 +122,7 @@ async function afterChange() {
 }
 
 export async function addCustomCategory(input: { name: string; type: ListEntryType; emoji?: string | null }): Promise<CustomCategory> {
-  const problem = nameProblem(input.name, categoryNames(state, input.type));
+  const problem = nameProblem(input.name, takenCategoryNames(input.type));
   if (problem) throw new Error(problem);
   const repository = await getCatalogRepository();
   const created = await repository.addCategory(input);
@@ -150,6 +167,15 @@ export async function removeBudget(id: string): Promise<void> {
   await afterChange();
 }
 
+/** Hides or shows a built-in category in pickers. Past entries keep their category. */
+export async function setDefaultHidden(type: ListEntryType, name: string, hidden: boolean): Promise<void> {
+  if (name === UNHIDEABLE_CATEGORY) return;
+  const key = hiddenKey(type, name);
+  const next = hidden ? [...state.hiddenDefaults.filter(item => item !== key), key] : state.hiddenDefaults.filter(item => item !== key);
+  const repository = await getCatalogRepository();
+  await repository.setHiddenDefaults(next);
+  await afterChange();
+}
 /** Test helper: forget loaded lists between tests. */
 export function resetCatalogForTests() {
   inFlight = null;
