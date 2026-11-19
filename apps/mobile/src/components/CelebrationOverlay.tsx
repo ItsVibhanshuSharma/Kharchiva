@@ -4,6 +4,7 @@ import { colors, radius, spacing } from '../theme';
 import { categoryLook } from '../theme/categories';
 import { formatRupees } from '../utils/money';
 import { HIDDEN_AMOUNT, isPrivacyOn } from '../features/privacy/privacy';
+import { t } from '../i18n/i18n';
 import { Text } from './Text';
 import { subscribeToCelebrations, type CelebrationEvent } from './celebration';
 
@@ -31,10 +32,11 @@ function particlesFor(event: CelebrationEvent, emoji: string): Particle[] {
 
 function messageFor(event: CelebrationEvent) {
   const amount = isPrivacyOn() ? HIDDEN_AMOUNT : formatRupees(event.amountPaise);
-  const more = event.extraCount ? ` · +${event.extraCount} more` : '';
+  const more = event.extraCount ? ` · ${t('+{n} more', { n: event.extraCount })}` : '';
+  const category = t(event.category);
   return event.type === 'income'
-    ? { title: `+${amount} added`, subtitle: `${event.category} · Paisa aaya! 🎉${more}` }
-    : { title: `−${amount} spent`, subtitle: `${event.category} · Paisa gaya 🥲${more}` };
+    ? { title: t('+{amount} added', { amount }), subtitle: t('{category} · Paisa aaya! 🎉{more}', { category, more }) }
+    : { title: t('−{amount} spent', { amount }), subtitle: t('{category} · Paisa gaya 🥲{more}', { category, more }) };
 }
 
 /** Mounted once at the app root. Non-blocking: touches pass through to the screen below. */

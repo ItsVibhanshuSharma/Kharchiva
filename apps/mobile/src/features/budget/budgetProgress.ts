@@ -87,12 +87,12 @@ export function budgetNotice(
       const before = after - expense.amountPaise;
       const label = budgetLabel(budget.category);
       if (after > budget.limitPaise && before <= budget.limitPaise) {
-        return { severity: 2, tone: 'error' as const, message: `${label} budget se ${formatRupees(after - budget.limitPaise)} zyada ho gaya` };
+        return { severity: 2, tone: 'error' as const, message: t('{label} budget se {amount} zyada ho gaya', { label: t(label), amount: formatRupees(after - budget.limitPaise) }) };
       }
       const nearAt = budget.limitPaise * NEAR_RATIO;
       if (after >= nearAt && before < nearAt && after <= budget.limitPaise) {
         const percent = Math.floor((after / budget.limitPaise) * 100);
-        return { severity: 1, tone: 'info' as const, message: `${label} budget ka ${percent}% use ho gaya (${formatRupees(after)} / ${formatRupees(budget.limitPaise)})` };
+        return { severity: 1, tone: 'info' as const, message: t('{label} budget ka {percent}% use ho gaya ({spent} / {limit})', { label: t(label), percent, spent: formatRupees(after), limit: formatRupees(budget.limitPaise) }) };
       }
       return null;
     })

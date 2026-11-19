@@ -1,7 +1,9 @@
 import type { Strings } from '../languages';
+import { addExpense } from './addExpense';
 import { categories } from './categories';
 import { home } from './home';
 import { profile } from './profile';
+import { sheets } from './sheets';
 import { statement } from './statement';
 import { transactions } from './transactions';
 
@@ -12,4 +14,6 @@ export const ALL_STRINGS: Strings = {
   ...home,
   ...transactions,
   ...statement,
+  ...addExpense,
+  ...sheets,
 };

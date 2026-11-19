@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../components/Text';
+import { useLanguage } from '../../i18n/i18n';
 import { Check, X } from '../../components/icons';
 import { MAX_NAME_LENGTH } from '../../database/repositories/CatalogRepository';
 import { colors, radius, spacing } from '../../theme';
@@ -25,6 +26,7 @@ export type NewItemSheetProps = {
 
 export function NewItemSheet({ visible, title, placeholder, withEmoji = false, onClose, onSave }: NewItemSheetProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState(CATEGORY_EMOJIS[0]);
   const [error, setError] = useState('');
@@ -72,7 +74,7 @@ export function NewItemSheet({ visible, title, placeholder, withEmoji = false, o
               setError('');
             }}
             onSubmitEditing={save}
-            placeholder={placeholder}
+            placeholder={t(placeholder)}
             placeholderTextColor={colors.textMuted}
             returnKeyType="done"
             style={styles.input}

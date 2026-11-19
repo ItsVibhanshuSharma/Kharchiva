@@ -9,6 +9,7 @@ import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput, describeDateInput, expenseDateToIso } from '../../screens/expenses/expenseInputUtils';
 import { colors, radius, spacing } from '../../theme';
 import { formatRupees } from '../../utils/money';
+import { useLanguage } from '../../i18n/i18n';
 import { useCatalog } from '../catalog/catalogStore';
 import { notifyEntriesChanged } from '../entries/entryEvents';
 import { parseSpokenEntries, type ParsedEntry } from './parseSpokenEntries';
@@ -30,6 +31,7 @@ function titleOf(entry: ParsedEntry) {
 }
 
 export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetProps) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const [transcript, setTranscript] = useState('');
   const [listenState, setListenState] = useState<ListenState>('idle');
@@ -141,7 +143,7 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
     } catch {
       // Keep only the unsaved entries on screen so a retry can't create duplicates.
       setRemoved(current => new Set([...current, ...saved]));
-      setMessage(saved.length ? `${saved.length} saved. Baaki save nahi hue, phir try karo.` : 'Save nahi ho paya. Phir try karo.');
+      setMessage(saved.length ? t('{n} saved. Baaki save nahi hue, phir try karo.', { n: saved.length }) : 'Save nahi ho paya. Phir try karo.');
       setSaving(false);
       if (saved.length) {
         notifyEntriesChanged();
@@ -195,7 +197,7 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
             multiline
             onChangeText={updateTranscript}
             onFocus={() => stopListening()}
-            placeholder={`Jaise: "${EXAMPLES[0]}"`}
+            placeholder={t('Jaise: "{example}"', { example: EXAMPLES[0] })}
             placeholderTextColor={colors.textMuted}
             style={styles.transcript}
             value={transcript}
@@ -210,7 +212,7 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
                   <CategoryIcon category={entry.category} type={entry.type} size={42} />
                   <View style={styles.cardMeta}>
                     <Text variant="label" numberOfLines={1} style={styles.cardTitle}>{titleOf(entry)}</Text>
-                    <Text variant="caption" numberOfLines={1}>{`${entry.category} · ${describeDateInput(entry.date, new Date())}`}</Text>
+                    <Text variant="caption" numberOfLines={1}>{`${t(entry.category)} · ${t(describeDateInput(entry.date, new Date()))}`}</Text>
                   </View>
                   <Pressable
                     accessibilityRole="button"
@@ -235,7 +237,7 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
               );
             })}
             {parsed.unparsed.map(piece => (
-              <Text key={piece} variant="caption" style={styles.unparsed}>{`"${piece}" samajh nahi aaya. Amount bhi bolo.`}</Text>
+              <Text key={piece} variant="caption" style={styles.unparsed}>{t('"{piece}" samajh nahi aaya. Amount bhi bolo.', { piece })}</Text>
             ))}
             {!transcript && !listening ? (
               <View style={styles.examples}>
@@ -258,7 +260,7 @@ export function VoiceEntrySheet({ visible, onClose, onSaved }: VoiceEntrySheetPr
           >
             <Check color={colors.white} size={20} strokeWidth={2.8} />
             <Text variant="button" style={styles.saveText}>
-              {saving ? 'Saving…' : entries.length > 1 ? `Save ${entries.length} entries` : 'Save entry'}
+              {saving ? 'Saving…' : entries.length > 1 ? t('Save {n} entries', { n: entries.length }) : 'Save entry'}
             </Text>
           </Pressable>
         </View>

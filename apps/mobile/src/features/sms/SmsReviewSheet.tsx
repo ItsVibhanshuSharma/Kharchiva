@@ -8,6 +8,7 @@ import { getTransactionRepository } from '../../database/transactionRepository';
 import { colors, radius, spacing } from '../../theme';
 import { dateForExpenseInput } from '../../screens/expenses/expenseInputUtils';
 import { formatShortDate } from '../../utils/dates';
+import { useLanguage } from '../../i18n/i18n';
 import { formatRupees } from '../../utils/money';
 import { notifyEntriesChanged } from '../entries/entryEvents';
 import type { SmsDraft } from './parseBankSms';
@@ -23,6 +24,7 @@ const titleOf = (draft: SmsDraft) => draft.merchant ?? draft.paymentSource ?? dr
 
 /** Lists transactions found in SMS. Nothing reaches the ledger until the user saves. */
 export function SmsReviewSheet({ visible, drafts, onClose }: Props) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const [flipped, setFlipped] = useState<Set<string>>(new Set());
   const [gone, setGone] = useState<Set<string>>(new Set());
@@ -67,7 +69,7 @@ export function SmsReviewSheet({ visible, drafts, onClose }: Props) {
         saved.push(draft.id);
       }
     } catch {
-      setMessage(saved.length ? `${saved.length} saved. Baaki save nahi hue, phir try karo.` : 'Save nahi ho paya. Phir try karo.');
+      setMessage(saved.length ? t('{n} saved. Baaki save nahi hue, phir try karo.', { n: saved.length }) : 'Save nahi ho paya. Phir try karo.');
     }
     // Saved entries leave the queue even on partial failure, so a retry cannot duplicate them.
     if (saved.length) {
@@ -102,7 +104,7 @@ export function SmsReviewSheet({ visible, drafts, onClose }: Props) {
                   <View style={styles.cardMeta}>
                     <Text variant="label" numberOfLines={1} style={styles.cardTitle}>{titleOf(draft)}</Text>
                     <Text variant="caption" numberOfLines={1}>
-                      {`${draft.category} · ${formatShortDate(dateForExpenseInput(new Date(draft.occurredAt)))}`}
+                      {`${t(draft.category)} · ${formatShortDate(dateForExpenseInput(new Date(draft.occurredAt)))}`}
                     </Text>
                   </View>
                   <Pressable
@@ -144,7 +146,7 @@ export function SmsReviewSheet({ visible, drafts, onClose }: Props) {
           >
             <Check color={colors.white} size={20} strokeWidth={2.8} />
             <Text variant="button" style={styles.saveText}>
-              {saving ? 'Saving…' : items.length > 1 ? `Save ${items.length} entries` : 'Save entry'}
+              {saving ? 'Saving…' : items.length > 1 ? t('Save {n} entries', { n: items.length }) : 'Save entry'}
             </Text>
           </Pressable>
         </View>

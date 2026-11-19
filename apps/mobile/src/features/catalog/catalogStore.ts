@@ -7,6 +7,7 @@ import {
   type CustomPaymentSource,
   type ListEntryType,
 } from '../../database/repositories/CatalogRepository';
+import { t } from '../../i18n/i18n';
 import { DEFAULT_PAYMENT_SOURCES, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../theme/categories';
 
 export type CatalogState = {
@@ -110,8 +111,8 @@ function takenCategoryNames(type: ListEntryType): string[] {
 export function nameProblem(name: string, existing: readonly string[]): string | null {
   const trimmed = name.trim().replace(/\s+/g, ' ');
   if (!trimmed) return 'Naam likho.';
-  if (trimmed.length > MAX_NAME_LENGTH) return `Naam ${MAX_NAME_LENGTH} letters tak rakho.`;
-  if (existing.some(item => item.toLowerCase() === trimmed.toLowerCase())) return `"${trimmed}" pehle se hai.`;
+  if (trimmed.length > MAX_NAME_LENGTH) return t('Naam {n} letters tak rakho.', { n: MAX_NAME_LENGTH });
+  if (existing.some(item => item.toLowerCase() === trimmed.toLowerCase())) return t('"{name}" pehle se hai.', { name: trimmed });
   return null;
 }
 

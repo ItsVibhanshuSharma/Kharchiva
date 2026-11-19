@@ -20,6 +20,7 @@ import { addCustomCategory, addPaymentSource, categoryNames, paymentSourceNames,
 import { NewItemSheet } from '../../features/catalog/NewItemSheet';
 import { checkBudgetsAfterExpense } from '../../features/budget/budgetCheck';
 import { Plus } from '../../components/icons';
+import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput, describeDateInput, expenseDateToIso, parseRupeesToPaise, shiftDateInput } from './expenseInputUtils';
 
@@ -36,6 +37,7 @@ type AddExpenseScreenProps = {
 
 export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const footerBottomInset = bottomSafeAreaInset(insets.bottom);
   const scrollBottomClearance = fixedFooterContentInset(
     SAVE_BUTTON_HEIGHT + SAVE_FOOTER_TOP_SPACING,
@@ -115,19 +117,19 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const confirmDelete = () => {
     if (!editId) return;
     Alert.alert(
-      `Delete this ${isIncome ? 'income' : 'expense'}?`,
-      'It will be removed from your totals on this device.',
+      t(isIncome ? 'Delete this income?' : 'Delete this expense?'),
+      t('It will be removed from your totals on this device.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('Delete'),
           style: 'destructive',
           onPress: () => {
             (async () => {
               try {
                 const repository = await getTransactionRepository();
                 await repository.deleteTransaction(editId, entryType);
-                showSnackbar({ message: `${isIncome ? 'Income' : 'Expense'} delete ho gaya` });
+                showSnackbar({ message: translateNow(isIncome ? 'Income delete ho gaya' : 'Expense delete ho gaya') });
                 navigation.goBack();
               } catch {
                 showSnackbar({ tone: 'error', message: 'Delete nahi ho paya. Phir try karo.' });
@@ -222,7 +224,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
         style={styles.flex}
       >
         <AppHeader
-          title={`${isEditing ? 'Edit' : 'Add'} ${isIncome ? 'Income' : 'Expense'}`}
+          title={isEditing ? (isIncome ? 'Edit Income' : 'Edit Expense') : isIncome ? 'Add Income' : 'Add Expense'}
           showBack
           onBack={() => navigation.goBack()}
         />
@@ -349,9 +351,9 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           ) : null}
           <Card style={styles.detailsCard}>
             {isIncome ? (
-              <Input accessibilityLabel="Income source" label="Source" onChangeText={setSourceName} placeholder="Optional, e.g. Company" value={sourceName} />
+              <Input accessibilityLabel="Income source" label="Source" onChangeText={setSourceName} placeholder={t('Optional, e.g. Company')} value={sourceName} />
             ) : (
-              <Input accessibilityLabel="Merchant" label="Merchant" onChangeText={setMerchant} placeholder="Optional merchant" value={merchant} />
+              <Input accessibilityLabel="Merchant" label="Merchant" onChangeText={setMerchant} placeholder={t('Optional merchant')} value={merchant} />
             )}
             <View style={styles.detailDivider} />
             <View style={styles.dateBlock}>
@@ -383,7 +385,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
               </View>
             </View>
             <View style={styles.detailDivider} />
-            <Input accessibilityLabel="Expense note" label="Note" onChangeText={setNote} placeholder="Optional note" value={note} />
+            <Input accessibilityLabel="Expense note" label="Note" onChangeText={setNote} placeholder={t('Optional note')} value={note} />
           </Card>
 
         </ScrollView>
