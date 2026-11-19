@@ -20,6 +20,10 @@ import { addCustomCategory, addPaymentSource, categoryNames, paymentSourceNames,
 import { NewItemSheet } from '../../features/catalog/NewItemSheet';
 import { checkBudgetsAfterExpense } from '../../features/budget/budgetCheck';
 import { Plus } from '../../components/icons';
+import { getSplitRepository } from '../../database/splitRepository';
+import { SplitSection } from '../../features/split/SplitSection';
+import { computeShares, draftFromShares, emptyDraft, myShare, splitProblem, type SplitDraft } from '../../features/split/splitMath';
+import { removeExpenseSplit, saveExpenseSplit } from '../../features/split/splitStore';
 import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput, describeDateInput, expenseDateToIso, parseRupeesToPaise, shiftDateInput } from './expenseInputUtils';
@@ -68,6 +72,9 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
   const [validationError, setValidationError] = useState('');
   const today = dateForExpenseInput(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
+  // A split bill: the amount typed is the whole bill, and only the user's share is saved as the expense.
+  const [splitOn, setSplitOn] = useState(false);
+  const [splitDraft, setSplitDraft] = useState<SplitDraft>(emptyDraft);
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [loadingEntry, setLoadingEntry] = useState(isEditing);
@@ -97,6 +104,14 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           setSourceName(record.sourceName ?? '');
         }
         setOriginal({ date, occurredAt: record.occurredAt });
+        if (record.type === 'expense') {
+          const split = await (await getSplitRepository()).getSplitForExpense(editId).catch(() => null);
+          if (split && !cancelled) {
+            setSplitOn(true);
+            setSplitDraft(draftFromShares(split.method, split.paidBy, split.shares));
+            setAmount((split.totalPaise / 100).toFixed(split.totalPaise % 100 === 0 ? 0 : 2));
+          }
+        }
       } catch {
         if (!cancelled) setLoadError('Could not load this entry. Please go back and try again.');
       } finally {
@@ -127,6 +142,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           onPress: () => {
             (async () => {
               try {
+                if (!isIncome) await removeExpenseSplit(editId);
                 const repository = await getTransactionRepository();
                 await repository.deleteTransaction(editId, entryType);
                 showSnackbar({ message: translateNow(isIncome ? 'Income delete ho gaya' : 'Expense delete ho gaya') });
@@ -171,15 +187,29 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
       setValidationError('Date cannot be in the future.');
       return;
     }
+    // With a split, the expense is the user's own share; the whole bill is kept in the split.
+    let expensePaise = amountPaise;
+    let splitShares: ReturnType<typeof computeShares>['shares'];
+    if (splitOn && !isIncome) {
+      const result = computeShares(splitDraft, amountPaise);
+      const problem = result.shares ? splitProblem(amountPaise, splitDraft.paidBy, result.shares) : result.problem;
+      if (problem || !result.shares) {
+        setValidationError(t(problem ?? 'Pehle dost chuno.'));
+        return;
+      }
+      splitShares = result.shares;
+      expensePaise = myShare(result.shares);
+    }
     setValidationError('');
     setLoadError('');
     setSaving(true);
     try {
       const repository = await getTransactionRepository();
+      let savedId: string | undefined = editId;
       if (editId && isIncome) {
         await repository.updateIncome(editId, { amountPaise, category, occurredAt, sourceName, note });
       } else if (editId) {
-        await repository.updateExpense(editId, { amountPaise, category, occurredAt, merchant, paymentSource, note });
+        await repository.updateExpense(editId, { amountPaise: expensePaise, category, occurredAt, merchant, paymentSource, note });
       } else if (isIncome) {
         await repository.createIncome({
           amountPaise,
@@ -189,19 +219,35 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           note,
         });
       } else {
-        await repository.createExpense({
-          amountPaise,
+        savedId = (await repository.createExpense({
+          amountPaise: expensePaise,
           category,
           occurredAt,
           merchant,
           paymentSource,
           note,
-        });
+        })).id;
+      }
+      if (!isIncome && savedId) {
+        if (splitShares) {
+          await saveExpenseSplit({
+            expenseId: savedId,
+            title: merchant.trim() || note.trim() || category,
+            date: expenseDate,
+            totalPaise: amountPaise,
+            paidBy: splitDraft.paidBy,
+            method: splitDraft.method,
+            shares: splitShares,
+          });
+        } else if (editId) {
+          // The split was switched off while editing.
+          await removeExpenseSplit(editId);
+        }
       }
       // New entries get the celebration; edits get a quiet confirmation.
       if (editId) showSnackbar({ message: 'Changes save ho gaye' });
-      else celebrate({ type: entryType, category, amountPaise });
-      if (!editId && !isIncome) checkBudgetsAfterExpense({ category, amountPaise, occurredAt });
+      else celebrate({ type: entryType, category, amountPaise: expensePaise });
+      if (!editId && !isIncome) checkBudgetsAfterExpense({ category, amountPaise: expensePaise, occurredAt });
       navigation.goBack();
     } catch {
       showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' });
@@ -256,7 +302,7 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
           </View>
           ) : null}
           <Card style={styles.amountCard}>
-            <Text variant="caption" style={styles.amountLabel}>{isIncome ? 'RECEIVED AMOUNT' : 'SPENT AMOUNT'}</Text>
+            <Text variant="caption" style={styles.amountLabel}>{isIncome ? 'RECEIVED AMOUNT' : splitOn ? 'TOTAL BILL' : 'SPENT AMOUNT'}</Text>
             <View style={styles.amountEntry}>
               <Text style={styles.currencySymbol}>₹</Text>
               <TextInput
@@ -348,6 +394,15 @@ export function AddExpenseScreen({ route }: AddExpenseScreenProps = {}) {
               </View>
             </ScrollView>
           </View>
+          ) : null}
+          {!isIncome ? (
+            <SplitSection
+              draft={splitDraft}
+              enabled={splitOn}
+              onChange={next => { setSplitDraft(next); setValidationError(''); }}
+              onToggle={setSplitOn}
+              totalPaise={parseRupeesToPaise(amount)}
+            />
           ) : null}
           <Card style={styles.detailsCard}>
             {isIncome ? (

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Join on Kharchiva</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#faf9f6;color:#19171d;margin:0;padding:24px;display:flex;justify-content:center}
+    main{max-width:420px;width:100%;margin-top:10vh;background:#fff;border:1px solid #e5e0ea;border-radius:20px;padding:24px;text-align:center}
+    h1{font-size:22px;margin:0 0 6px}
+    p{color:#716d79;margin:6px 0 18px}
+    .code{font-family:ui-monospace,monospace;background:#f3f2ee;border-radius:10px;padding:10px;word-break:break-all;color:#19171d}
+    a.button{display:block;padding:15px;border-radius:999px;background:#6817d9;color:#fff;text-decoration:none;font-weight:600;margin-top:12px}
+    a.secondary{background:#fff;color:#19171d;border:1px solid #e5e0ea}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>You are invited</h1>
+    <p>Join this group on Kharchiva to split expenses together.</p>
+    <div class="code" id="code"></div>
+    <a class="button" id="open" href="#">Open in Kharchiva</a>
+    <a class="button secondary" id="store" href="#">Get the app</a>
+    <p style="margin-top:18px;font-size:13px">After installing, open Kharchiva, choose Splitwise, Join with link or code, and paste the code above.</p>
+  </main>
+  <script>
+    // Opens the app if installed (Android App Links normally do this before the page loads).
+    // If the app is missing, the intent link falls back to the Play Store.
+    var PACKAGE = 'com.kharchivamobile';
+    var match = location.pathname.match(/\/join\/([A-Za-z0-9_-]{6,64})/);
+    var code = match ? match[1] : '';
+    var storeUrl = 'https://play.google.com/store/apps/details?id=' + PACKAGE +
+      (code ? '&referrer=' + encodeURIComponent('invite=' + code) : '');
+    document.getElementById('code').textContent = code || 'No invite code found';
+    document.getElementById('store').href = storeUrl;
+    var isAndroid = /android/i.test(navigator.userAgent);
+    var appLink = isAndroid
+      ? 'intent://join/' + code + '#Intent;scheme=kharchiva;package=' + PACKAGE +
+        ';S.browser_fallback_url=' + encodeURIComponent(storeUrl) + ';end'
+      : 'kharchiva://join/' + code;
+    document.getElementById('open').href = code ? appLink : storeUrl;
+    if (isAndroid && code) setTimeout(function () { location.href = appLink; }, 400);
+  </script>
+</body>
+</html>

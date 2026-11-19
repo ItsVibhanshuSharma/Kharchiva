@@ -28,6 +28,7 @@ import type {LedgerTransaction, TransactionType} from '../../database/models/tra
 import {formatTransactionCount} from './transactionUtils';
 import {usePrivacy} from '../../features/privacy/privacy';
 import {subscribeToEntryChanges} from '../../features/entries/entryEvents';
+import {expenseIdsWithSplit, useSplits} from '../../features/split/splitStore';
 import {useLanguage} from '../../i18n/i18n';
 
 type TransactionFilter = 'all' | TransactionType;
@@ -79,7 +80,7 @@ function createGroups(transactions: LedgerTransaction[]): TransactionGroup[] {
   return Array.from(grouped.values()).sort((left, right) => right.key.localeCompare(left.key));
 }
 
-function TransactionRow({transaction, onPress}: {transaction: LedgerTransaction; onPress: () => void}) {
+function TransactionRow({transaction, onPress, isSplit}: {transaction: LedgerTransaction; onPress: () => void; isSplit?: boolean}) {
   const {mask} = usePrivacy();
   const isIncome = transaction.type === 'income';
   return (
@@ -94,6 +95,12 @@ function TransactionRow({transaction, onPress}: {transaction: LedgerTransaction;
         <Text numberOfLines={1} style={styles.transactionTitle}>{transaction.title}</Text>
         <View style={styles.metadataRow}>
           <Text numberOfLines={1} style={styles.metadataText}>{transaction.category}</Text>
+          {isSplit ? (
+            <>
+              <Text style={styles.metadataSeparator}>•</Text>
+              <Text numberOfLines={1} style={styles.splitBadge}>Split</Text>
+            </>
+          ) : null}
           {transaction.paymentSource ? (
             <>
               <Text style={styles.metadataSeparator}>•</Text>
@@ -112,6 +119,7 @@ function TransactionRow({transaction, onPress}: {transaction: LedgerTransaction;
 export function TransactionsScreen() {
   const {mask} = usePrivacy();
   const {t, tDate} = useLanguage();
+  const splitIds = expenseIdsWithSplit(useSplits());
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
@@ -287,7 +295,7 @@ export function TransactionsScreen() {
                 <Text style={styles.groupCount}>{formatTransactionCount(group.transactions.length)}</Text>
               </View>
               <Card style={styles.transactionCard}>
-                {group.transactions.map((transaction, index) => <React.Fragment key={transaction.id}>{index > 0 ? <View style={styles.rowDivider} /> : null}<TransactionRow transaction={transaction} onPress={() => openEdit(transaction)} /></React.Fragment>)}
+                {group.transactions.map((transaction, index) => <React.Fragment key={transaction.id}>{index > 0 ? <View style={styles.rowDivider} /> : null}<TransactionRow transaction={transaction} isSplit={transaction.type === 'expense' && splitIds.has(transaction.id)} onPress={() => openEdit(transaction)} /></React.Fragment>)}
               </Card>
             </View>
           ))
@@ -327,6 +335,7 @@ export function TransactionsScreen() {
 
 
 const styles = StyleSheet.create({
+  splitBadge: {color: colors.primary, fontSize: 12, fontWeight: '700'},
   screen: {paddingHorizontal: 0, paddingBottom: 0, paddingTop: 0},
   brandHeader: {alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm},
   brandLockup: {alignItems: 'center', flexDirection: 'row', gap: spacing.sm},

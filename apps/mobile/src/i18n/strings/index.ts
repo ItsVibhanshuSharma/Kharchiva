@@ -10,6 +10,9 @@ import { profile } from './profile';
 import { recurring } from './recurring';
 import { security } from './security';
 import { sheets } from './sheets';
+import { splitForm } from './splitForm';
+import { splitScreens } from './splitScreens';
+import { splitSettle } from './splitSettle';
 import { statement } from './statement';
 import { transactions } from './transactions';
 
@@ -28,4 +31,7 @@ export const ALL_STRINGS: Strings = {
   ...security,
   ...authWelcome,
   ...authFlow,
+  ...splitForm,
+  ...splitScreens,
+  ...splitSettle,
 };

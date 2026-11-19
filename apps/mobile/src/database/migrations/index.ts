@@ -150,4 +150,50 @@ export const migrations = [
       );
     `);
   }),
+  // Split bills, kept on this phone. An expense that is split stores only the user's own share
+  // as its amount, so every total in the app stays correct; the bill itself lives in
+  // expense_splits (shares is a JSON list of { personId, paise, percent? }, 'ME' is the user).
+  // Settlements record money handed over later and never count as income or expense.
+  createMigration(7, async (database) => {
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS split_people (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS expense_splits (
+        id TEXT PRIMARY KEY NOT NULL,
+        expenseId TEXT NOT NULL,
+        title TEXT NOT NULL,
+        splitDate TEXT NOT NULL CHECK (length(splitDate) = 10),
+        totalPaise INTEGER NOT NULL CHECK (totalPaise > 0),
+        paidBy TEXT NOT NULL,
+        method TEXT NOT NULL CHECK (method IN ('EQUAL', 'CUSTOM', 'PERCENT')),
+        shares TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+    await database.execute(`
+      CREATE INDEX IF NOT EXISTS idx_expense_splits_expenseId
+      ON expense_splits (expenseId);
+    `);
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS split_settlements (
+        id TEXT PRIMARY KEY NOT NULL,
+        personId TEXT NOT NULL,
+        direction TEXT NOT NULL CHECK (direction IN ('THEY_PAID_ME', 'I_PAID_THEM')),
+        amountPaise INTEGER NOT NULL CHECK (amountPaise > 0),
+        settledOn TEXT NOT NULL CHECK (length(settledOn) = 10),
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT
+      );
+    `);
+  }),
 ];

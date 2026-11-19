@@ -18,6 +18,16 @@ export type RootStackParamList = {
   Reminder: undefined;
   Recurring: undefined;
   Language: undefined;
+  Splits: undefined;
+  SplitPerson: { personId: string };
+  /** Splitwise-style shared groups (trips, flats). */
+  Groups: undefined;
+  CreateGroup: undefined;
+  GroupDetail: { groupId: string; justCreated?: boolean };
+  AddGroupExpense: { groupId: string; expenseId?: string };
+  GroupMembers: { groupId: string };
+  /** `code` is set when the screen is opened from an invite link. */
+  JoinGroup: { code?: string } | undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 
@@ -38,4 +48,12 @@ export const ACTIVE_ROUTES = [
   'Reminder',
   'Recurring',
   'Language',
+  'Splits',
+  'SplitPerson',
+  'Groups',
+  'CreateGroup',
+  'GroupDetail',
+  'AddGroupExpense',
+  'GroupMembers',
+  'JoinGroup',
 ] as const satisfies readonly RootStackRouteName[];
