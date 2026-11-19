@@ -17,6 +17,7 @@ export type RootStackParamList = {
   ManageLists: undefined;
   Reminder: undefined;
   Recurring: undefined;
+  Language: undefined;
 };
 export type RootStackRouteName = keyof RootStackParamList;
 
@@ -36,4 +37,5 @@ export const ACTIVE_ROUTES = [
   'ManageLists',
   'Reminder',
   'Recurring',
+  'Language',
 ] as const satisfies readonly RootStackRouteName[];

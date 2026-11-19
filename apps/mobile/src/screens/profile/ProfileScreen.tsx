@@ -6,8 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAVIGATION_CONTENT_INSET, BottomNavigation } from '../../components/BottomNavigation';
 import { Screen } from '../../components/Screen';
 import { Text } from '../../components/Text';
-import { Bell, ChevronRight, EyeOff, FileText, KeyRound, LogOut, Pencil, Repeat, Smartphone, Tags, Target } from '../../components/icons';
+import { Bell, ChevronRight, EyeOff, FileText, Globe, KeyRound, LogOut, Pencil, Repeat, Smartphone, Tags, Target } from '../../components/icons';
 import { useMpinEnabled } from '../../features/mpin/mpinStatus';
+import { LANGUAGES } from '../../i18n/languages';
+import { useLanguage } from '../../i18n/i18n';
 import { setPrivacyOn, usePrivacy } from '../../features/privacy/privacy';
 import { appTabItems, navigateToTab } from '../../navigation/appTabs';
 import type { RootStackParamList } from '../../navigation/types';
@@ -19,6 +21,8 @@ export function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { hidden } = usePrivacy();
   const mpinEnabled = useMpinEnabled();
+  const { language } = useLanguage();
+  const languageName = LANGUAGES.find(item => item.code === language)?.nativeName ?? '';
 
   // Demo sign-in: logging out returns to the start of the flow. Entries stay on the phone.
   const logOut = () => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
@@ -74,6 +78,21 @@ export function ProfileScreen() {
             thumbColor={colors.white}
           />
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Language"
+          onPress={() => navigation.navigate('Language')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Globe color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>Language</Text>
+            <Text variant="caption">{languageName}</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="MPIN"

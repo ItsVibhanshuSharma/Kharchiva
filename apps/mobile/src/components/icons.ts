@@ -21,6 +21,7 @@ export { default as FileText } from 'lucide-react-native/icons/file-text';
 export { default as Film } from 'lucide-react-native/icons/film';
 export { default as Fuel } from 'lucide-react-native/icons/fuel';
 export { default as Gift } from 'lucide-react-native/icons/gift';
+export { default as Globe } from 'lucide-react-native/icons/globe';
 export { default as GraduationCap } from 'lucide-react-native/icons/graduation-cap';
 export { default as HeartPulse } from 'lucide-react-native/icons/heart-pulse';
 export { default as House } from 'lucide-react-native/icons/house';

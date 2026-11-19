@@ -38,6 +38,7 @@ describe('App navigator foundation', () => {
       'ManageLists',
       'Reminder',
       'Recurring',
+      'Language',
     ]);
   });
 

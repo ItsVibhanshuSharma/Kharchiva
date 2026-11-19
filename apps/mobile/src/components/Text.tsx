@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text as RNText, TextProps as RNTextProps } from 'react-native';
+import { useLanguage } from '../i18n/i18n';
 import { colors, typography } from '../theme';
 
 export type TextProps = RNTextProps & {
@@ -15,9 +16,11 @@ export type TextProps = RNTextProps & {
 };
 
 export function Text({ children, variant = 'body', style, ...props }: TextProps) {
+  // Plain strings are translated into the chosen language; anything else is shown as given.
+  const { t } = useLanguage();
   return (
     <RNText style={[styles.base, styles[variant], style]} {...props}>
-      {children}
+      {typeof children === 'string' ? t(children) : children}
     </RNText>
   );
 }
