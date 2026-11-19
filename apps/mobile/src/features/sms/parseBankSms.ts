@@ -43,8 +43,10 @@ const VERB_AMOUNT_RE =
 const LINK_RE = /https?:\/\/|www\.|\bclick\b/i;
 const ACCOUNT_REF_RE = /\ba\/c|\bacc(?:oun)?t\b|\bacct\b|\bcard\b|\bupi\b|\bvpa\b|\b[xX*]+\d{3,}/i;
 const BALANCE_BEFORE_RE = /(?:bal(?:ance)?|avl|available|limit|outstanding|total)[^\d₹]{0,15}$/i;
-const DEBIT_RE = /\b(?:debited|spent|paid|withdrawn|purchase|sent|deducted|payment of)\b/i;
-const CREDIT_RE = /\b(?:credited|received|deposited|refund(?:ed)?|cashback)\b/i;
+// Bank of Baroda and others abbreviate: "Rs.508.00 Dr. from A/C XX1819 and Cr. to x@ybl".
+// Only trust "Dr"/"Cr" right before from/to, so names like "Dr. Batra" are not read as debits.
+const DEBIT_RE = /\b(?:debited|spent|paid|withdrawn|purchase|sent|deducted|payment of)\b|\bdr\b\.?(?=\s+(?:from|to)\b)/i;
+const CREDIT_RE = /\b(?:credited|received|deposited|refund(?:ed)?|cashback)\b|\bcr\b\.?(?=\s+(?:from|to)\b)/i;
 
 const CATEGORY_HINTS: Array<[RegExp, string]> = [
   [/swiggy|zomato|restaurant|cafe|dominos|pizza|mcdonald|kfc|starbucks|food/i, 'Food & Dining'],
@@ -90,7 +92,10 @@ function cleanName(raw: string | undefined): string | null {
   if (!raw) return null;
   let name = raw.trim().replace(/[.,;:\-\s]+$/g, '');
   // UPI handles: "swiggy@okaxis" -> "swiggy".
-  name = name.replace(/^VPA\s+/i, '').replace(/@[\w.]+$/, '');
+  name = name.replace(/^VPA\s+/i, '');
+  // A UPI id that is just a phone number ("7723050096@axl") is a person; keep the whole id.
+  if (/^\d{10}@[\w.]+$/.test(name)) return name;
+  name = name.replace(/@[\w.]+$/, '');
   name = name.replace(/\s+/g, ' ');
   if (name.length < 2 || /^\d+$/.test(name) || /^[xX*]+\d*$/.test(name)) return null;
   if (/\ba\/c\b|\baccount\b/i.test(name)) return null;

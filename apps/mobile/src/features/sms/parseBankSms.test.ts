@@ -29,6 +29,15 @@ describe('parseBankSms', () => {
     expect(draft).toMatchObject({ type: 'expense', amountPaise: 25000, merchant: 'SWIGGY', category: 'Food & Dining', paymentSource: 'UPI ··1234' });
   });
 
+  it('reads Bank of Baroda "Dr."/"Cr." messages', () => {
+    const shop = sms('Rs.508.00 Dr. from A/C XXXXXX1819 and Cr. to flipkart.hypg@yespay. Ref:584810465214. AvlBal:Rs43938.90(2026:11:16 11:54:00). Not you? Call 18005700/5000-BOB');
+    expect(shop).toMatchObject({ type: 'expense', amountPaise: 50800, merchant: 'flipkart', category: 'Shopping', paymentSource: 'Bank ··1819' });
+    const person = sms('Rs.1000.00 Dr. from A/C XXXXXX1819 and Cr. to 7723050096@axl. Ref:364223635054. AvlBal:Rs41786.90(2026:11:13 10:28:27). Not you? Call 18005700/5000-BOB');
+    expect(person).toMatchObject({ type: 'expense', amountPaise: 100000, merchant: '7723050096@axl', paymentSource: 'Bank ··1819' });
+    expect(sms('Rs.2000.00 Cr. to A/C XXXXXX1819 from RAMESH. Ref:1. AvlBal:Rs43938.90 -BOB')).toMatchObject({ type: 'income', amountPaise: 200000 });
+    // "Dr." as a title is not a debit.
+    expect(sms('Rs.500 appointment with Dr. Batra confirmed')).toBeNull();
+  });
   it('reads an SBI UPI credit', () => {
     const draft = sms('Dear SBI UPI User, ur A/cX1234 credited by Rs500 on 18Nov26 by (Ref no 123456789)');
     expect(draft).toMatchObject({ type: 'income', amountPaise: 50000 });
