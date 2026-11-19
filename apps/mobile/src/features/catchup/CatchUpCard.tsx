@@ -6,6 +6,8 @@ import { Check, Plus } from '../../components/icons';
 import { getDayStatusRepository } from '../../database/dayStatusRepository';
 import { getTransactionRepository } from '../../database/transactionRepository';
 import { dateForExpenseInput } from '../../screens/expenses/expenseInputUtils';
+import { useLanguage } from '../../i18n/i18n';
+import { t as translateNow } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { notifyEntriesChanged, subscribeToEntryChanges } from '../entries/entryEvents';
 import { dayLabel, missingDays, monthCompleteness } from './catchUp';
@@ -32,6 +34,7 @@ type State = { missing: string[]; todayOpen: boolean; completeness: { covered: n
  * "nothing spent" mark, each with one-tap Add or Nothing. Hidden when all is caught up.
  */
 export function CatchUpCard({ onAdd, refreshKey = 0 }: { onAdd: (date: string) => void; refreshKey?: number }) {
+  const { t } = useLanguage();
   const [state, setState] = useState<State | null>(null);
 
   const load = useCallback(async () => {
@@ -64,7 +67,7 @@ export function CatchUpCard({ onAdd, refreshKey = 0 }: { onAdd: (date: string) =
     try {
       const repository = await getDayStatusRepository();
       await repository.markNoExpense(date);
-      showSnackbar({ message: `${dayLabel(date)}: koi kharcha nahi` });
+      showSnackbar({ message: translateNow('{day}: koi kharcha nahi', { day: dayLabel(date) }) });
       notifyEntriesChanged();
     } catch {
       showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' });
@@ -80,10 +83,10 @@ export function CatchUpCard({ onAdd, refreshKey = 0 }: { onAdd: (date: string) =
     <View accessibilityLabel="Catch up" style={styles.card}>
       <View>
         <Text variant="label" style={styles.title}>
-          {behind > 0 ? `${behind} din ka hisaab baaki` : 'Aaj ka hisaab?'}
+          {behind > 0 ? t('{n} din ka hisaab baaki', { n: behind }) : 'Aaj ka hisaab?'}
         </Text>
         {state.completeness ? (
-          <Text variant="caption">{`Is mahine ${state.completeness.covered} / ${state.completeness.total} din recorded`}</Text>
+          <Text variant="caption">{t('Is mahine {covered} / {total} din recorded', { covered: state.completeness.covered, total: state.completeness.total })}</Text>
         ) : null}
       </View>
       {rows.map(date => (
@@ -112,7 +115,7 @@ export function CatchUpCard({ onAdd, refreshKey = 0 }: { onAdd: (date: string) =
         </View>
       ))}
       {behind > MAX_ROWS - (state.todayOpen ? 1 : 0) ? (
-        <Text variant="caption">{`+${behind - (MAX_ROWS - (state.todayOpen ? 1 : 0))} aur din`}</Text>
+        <Text variant="caption">{t('+{n} aur din', { n: behind - (MAX_ROWS - (state.todayOpen ? 1 : 0)) })}</Text>
       ) : null}
     </View>
   );

@@ -32,6 +32,7 @@ import { appTabItems, navigateToTab } from '../../navigation/appTabs';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors, radius, spacing } from '../../theme';
 import { usePrivacy } from '../../features/privacy/privacy';
+import { useLanguage } from '../../i18n/i18n';
 import { formatShortDate } from '../../utils/dates';
 import { formatRupees, formatSignedRupees } from '../../utils/money';
 import { dateForExpenseInput } from '../expenses/expenseInputUtils';
@@ -45,6 +46,7 @@ type Busy = 'download' | 'share' | null;
 
 export function StatementScreen({ route }: StatementScreenProps = {}) {
   const { mask } = usePrivacy();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = dateForExpenseInput(new Date());
@@ -168,7 +170,7 @@ export function StatementScreen({ route }: StatementScreenProps = {}) {
         </View>
 
         <View style={styles.previewCard}>
-          <Text variant="caption" style={styles.previewEyebrow}>{`${days} ${days === 1 ? 'day' : 'days'} · ${loading ? '…' : `${transactions.length} entries`}`}</Text>
+          <Text variant="caption" style={styles.previewEyebrow}>{`${t(days === 1 ? '{n} day' : '{n} days', { n: days })} · ${loading ? '…' : t('{n} entries', { n: transactions.length })}`}</Text>
           <Text accessibilityLabel="Statement title" variant="heading" style={styles.previewTitle}>{rangeTitle(range)}</Text>
           {loading ? (
             <ActivityIndicator color={colors.white} style={styles.previewLoader} />

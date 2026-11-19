@@ -5,6 +5,7 @@ import { Text } from '../../components/Text';
 import { Check } from '../../components/icons';
 import { getRecurringRepository } from '../../database/recurringRepository';
 import type { RecurringItem } from '../../database/repositories/RecurringRepository';
+import { t } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { formatShortDate } from '../../utils/dates';
 import { formatRupees } from '../../utils/money';
@@ -33,7 +34,7 @@ export function RecurringDueCard({ refreshKey = 0 }: { refreshKey?: number }) {
     try {
       if (add) await addDueOccurrence(item);
       else await skipDueOccurrence(item);
-      showSnackbar({ message: add ? `${item.name} jud gaya` : `${item.name} is baar skip` });
+      showSnackbar({ message: add ? t('{name} jud gaya', { name: item.name }) : t('{name} is baar skip', { name: item.name }) });
     } catch {
       showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' });
     }

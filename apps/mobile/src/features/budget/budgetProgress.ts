@@ -1,3 +1,4 @@
+import { t } from '../../i18n/i18n';
 import { TOTAL_BUDGET, type Budget } from '../../database/repositories/CatalogRepository';
 import { formatRupees } from '../../utils/money';
 
@@ -63,8 +64,8 @@ export function budgetProgress(budgets: Budget[], monthExpenses: ExpenseLike[]):
 /** "₹1,500 bacha" or "₹500 zyada". Plain facts, no judgement (PRD §4.2). */
 export function remainingText(progress: Pick<BudgetProgress, 'remainingPaise'>): string {
   return progress.remainingPaise >= 0
-    ? `${formatRupees(progress.remainingPaise)} bacha`
-    : `${formatRupees(-progress.remainingPaise)} zyada`;
+    ? t('{amount} bacha', { amount: formatRupees(progress.remainingPaise) })
+    : t('{amount} zyada', { amount: formatRupees(-progress.remainingPaise) });
 }
 
 /**

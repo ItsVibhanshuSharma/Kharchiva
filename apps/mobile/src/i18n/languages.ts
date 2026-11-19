@@ -30,3 +30,7 @@ export const LANGUAGES: readonly LanguageInfo[] = [
 ];
 export const isLanguageCode = (value: unknown): value is LanguageCode =>
   LANGUAGES.some(language => language.code === value);
+
+/** One string in every non-English language. TypeScript flags a language left out. */
+export type TranslationEntry = Record<Exclude<LanguageCode, 'en'>, string>;
+export type Strings = Readonly<Record<string, TranslationEntry>>;

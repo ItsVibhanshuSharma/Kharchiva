@@ -28,6 +28,7 @@ import type {LedgerTransaction, TransactionType} from '../../database/models/tra
 import {formatTransactionCount} from './transactionUtils';
 import {usePrivacy} from '../../features/privacy/privacy';
 import {subscribeToEntryChanges} from '../../features/entries/entryEvents';
+import {useLanguage} from '../../i18n/i18n';
 
 type TransactionFilter = 'all' | TransactionType;
 type PickerType = 'date' | 'category';
@@ -110,6 +111,7 @@ function TransactionRow({transaction, onPress}: {transaction: LedgerTransaction;
 
 export function TransactionsScreen() {
   const {mask} = usePrivacy();
+  const {t, tDate} = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
@@ -221,7 +223,7 @@ export function TransactionsScreen() {
         <Input
           accessibilityLabel="Search transactions"
           onChangeText={setQuery}
-          placeholder="⌕  Search transactions by name, tag or amount"
+          placeholder={t('⌕  Search transactions by name, tag or amount')}
           returnKeyType="search"
           value={query}
           containerStyle={styles.searchContainer}
@@ -279,8 +281,8 @@ export function TransactionsScreen() {
             <View key={group.key} style={styles.dateGroup}>
               <View style={styles.dateGroupHeader}>
                 <View style={styles.dateGroupTitle}>
-                  {group.dateGroupLabel ? <><Text style={styles.relativeDate}>{group.dateGroupLabel.toUpperCase()}</Text><Text style={styles.dateSeparator}>•</Text></> : null}
-                  <Text style={styles.groupDate}>{group.date.toUpperCase()}</Text>
+                  {group.dateGroupLabel ? <><Text style={styles.relativeDate}>{t(group.dateGroupLabel).toUpperCase()}</Text><Text style={styles.dateSeparator}>•</Text></> : null}
+                  <Text style={styles.groupDate}>{tDate(group.date).toUpperCase()}</Text>
                 </View>
                 <Text style={styles.groupCount}>{formatTransactionCount(group.transactions.length)}</Text>
               </View>

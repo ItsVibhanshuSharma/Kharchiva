@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { useLanguage } from '../../i18n/i18n';
 import { ChevronRight } from '../../components/icons';
 import { colors, radius, spacing } from '../../theme';
 import type { Budget } from '../../database/repositories/CatalogRepository';
@@ -17,6 +18,7 @@ type Props = {
 
 /** Compact budget summary for Home. Renders nothing for users who never set a budget. */
 export function BudgetHomeCard({ budgets, monthExpenses, onOpen }: Props) {
+  useLanguage(); // re-render with translated amounts when the language changes
   if (budgets.length === 0) return null;
   const rows = budgetProgress(budgets, monthExpenses).slice(0, MAX_ROWS);
   return (

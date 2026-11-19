@@ -23,6 +23,7 @@ import { getTransactionRepository } from '../../database/transactionRepository';
 import { appTabItems, navigateToTab } from '../../navigation/appTabs';
 import type { RootStackParamList } from '../../navigation/types';
 import { usePrivacy } from '../../features/privacy/privacy';
+import { useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import {
   currentMonthKey,
@@ -62,16 +63,17 @@ function greeting(now: Date) {
 }
 
 /** Neutral, non-judgemental summary of the period (see PRD: "Do not judge the user"). */
-function insight(incomePaise: number, expensePaise: number) {
-  if (incomePaise === 0 && expensePaise === 0) return 'Nothing recorded yet';
-  if (incomePaise === 0) return 'No income recorded yet';
+function insight(incomePaise: number, expensePaise: number, t: (text: string, params?: Record<string, string | number>) => string) {
+  if (incomePaise === 0 && expensePaise === 0) return t('Nothing recorded yet');
+  if (incomePaise === 0) return t('No income recorded yet');
   const spentShare = Math.round((expensePaise / incomePaise) * 100);
-  return spentShare <= 100 ? `${spentShare}% of income spent` : `Spent ${spentShare - 100}% more than income`;
+  return spentShare <= 100 ? t('{n}% of income spent', { n: spentShare }) : t('Spent {n}% more than income', { n: spentShare - 100 });
 }
 
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { mask } = usePrivacy();
+  const { t } = useLanguage();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [view, setView] = useState<PeriodView>('month');
   const [month, setMonth] = useState<MonthKey>(() => currentMonthKey(new Date()));
@@ -168,7 +170,7 @@ export function HomeScreen() {
           >
             <Text variant="label" style={styles.smsBannerText}>
               {sms.drafts.length > 0
-                ? `${sms.drafts.length} naye SMS transactions mile. Review karo`
+                ? t('{n} naye SMS transactions mile. Review karo', { n: sms.drafts.length })
                 : 'Bank SMS se kharche apne aap pakdo. Chalu karo'}
             </Text>
           </Pressable>
@@ -236,7 +238,7 @@ export function HomeScreen() {
               ]}
             />
           </View>
-          <Text variant="caption" style={styles.heroInsight}>{mask(insight(summary.incomePaise, summary.expensePaise))}</Text>
+          <Text variant="caption" style={styles.heroInsight}>{mask(insight(summary.incomePaise, summary.expensePaise, t))}</Text>
           <View style={styles.heroStats}>
             <View style={styles.heroStat}>
               <View style={styles.heroStatIcon}><ArrowDownLeft color={hero.positive} size={18} strokeWidth={2.6} /></View>
@@ -331,7 +333,7 @@ export function HomeScreen() {
                 </View>
                 <View style={styles.rowMeta}>
                   <Text variant="label" style={styles.rowTitle}>{monthLabel(row.month)}</Text>
-                  <Text variant="caption">{mask(`+${formatRupees(row.incomePaise)} in · −${formatRupees(row.expensePaise)} out`)}</Text>
+                  <Text variant="caption">{mask(t('{income} in · {expense} out', { income: `+${formatRupees(row.incomePaise)}`, expense: `−${formatRupees(row.expensePaise)}` }))}</Text>
                 </View>
                 <Text
                   accessibilityLabel={`${row.label} remaining`}
@@ -361,7 +363,7 @@ export function HomeScreen() {
                 <CategoryIcon category={transaction.category} type={transaction.type} />
                 <View style={styles.rowMeta}>
                   <Text variant="label" numberOfLines={1} style={styles.rowTitle}>{transaction.title}</Text>
-                  <Text variant="caption" numberOfLines={1}>{`${transaction.dateLabel} · ${transaction.category}`}</Text>
+                  <Text variant="caption" numberOfLines={1}>{`${transaction.dateLabel} · ${t(transaction.category)}`}</Text>
                 </View>
                 <Text variant="label" style={[styles.rowAmount, transaction.type === 'income' ? styles.positive : styles.negative]}>
                   {mask(`${transaction.type === 'income' ? '+' : '−'}${formatRupees(transaction.amountPaise)}`)}

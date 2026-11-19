@@ -1,3 +1,5 @@
+import { t } from '../../i18n/i18n';
+
 export function formatTransactionCount(count: number) {
-  return `${count} transaction${count === 1 ? '' : 's'}`;
+  return t(count === 1 ? '{n} transaction' : '{n} transactions', { n: count });
 }
