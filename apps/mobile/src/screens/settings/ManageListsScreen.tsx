@@ -22,20 +22,21 @@ import {
 } from '../../features/catalog/catalogStore';
 import { NewItemSheet } from '../../features/catalog/NewItemSheet';
 import type { RootStackParamList } from '../../navigation/types';
+import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { DEFAULT_PAYMENT_SOURCES, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../theme/categories';
 
 type Adding = { kind: 'category'; type: ListEntryType } | { kind: 'payment' } | null;
 
 function confirmRemove(name: string, onConfirm: () => Promise<void>) {
-  Alert.alert(`"${name}" hatayein?`, 'Purani entries mein ye naam waise hi rahega. Bas aage ki list se hat jayega.', [
-    { text: 'Rehne do', style: 'cancel' },
+  Alert.alert(translateNow('"{name}" hatayein?', { name }), translateNow('Purani entries mein ye naam waise hi rahega. Bas aage ki list se hat jayega.'), [
+    { text: translateNow('Rehne do'), style: 'cancel' },
     {
-      text: 'Hatao',
+      text: translateNow('Hatao'),
       style: 'destructive',
       onPress: () => {
         onConfirm()
-          .then(() => showSnackbar({ message: `"${name}" hata diya` }))
+          .then(() => showSnackbar({ message: translateNow('"{name}" hata diya', { name }) }))
           .catch(() => showSnackbar({ tone: 'error', message: 'Hat nahi paya. Phir try karo.' }));
       },
     },
@@ -43,13 +44,14 @@ function confirmRemove(name: string, onConfirm: () => Promise<void>) {
 }
 
 export function ManageListsScreen() {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const catalog = useCatalog();
   const [adding, setAdding] = useState<Adding>(null);
   const toggleDefault = (type: ListEntryType, name: string, hide: boolean) => {
     setDefaultHidden(type, name, hide)
-      .then(() => showSnackbar({ message: hide ? `"${name}" chhupa diya. Purani entries waise hi rahengi.` : `"${name}" wapas aa gaya` }))
+      .then(() => showSnackbar({ message: t(hide ? '"{name}" chhupa diya. Purani entries waise hi rahengi.' : '"{name}" wapas aa gaya', { name: t(name) }) }))
       .catch(() => showSnackbar({ tone: 'error', message: 'Save nahi ho paya. Phir try karo.' }));
   };
 
@@ -138,7 +140,7 @@ export function ManageListsScreen() {
               <Text variant="label" style={styles.addText}>Naya payment source</Text>
             </Pressable>
           </View>
-          <Text variant="caption" style={styles.defaults}>{`Default: ${DEFAULT_PAYMENT_SOURCES.join(', ')}`}</Text>
+          <Text variant="caption" style={styles.defaults}>{t('Default: {list}', { list: DEFAULT_PAYMENT_SOURCES.map(item => t(item)).join(', ') })}</Text>
         </View>
       </ScrollView>
 
@@ -147,7 +149,7 @@ export function ManageListsScreen() {
         onSave={async (name, emoji) => {
           if (adding?.kind === 'payment') await addPaymentSource(name);
           else if (adding?.kind === 'category') await addCustomCategory({ name, type: adding.type, emoji });
-          showSnackbar({ message: `"${name.trim()}" jud gaya` });
+          showSnackbar({ message: t('"{name}" jud gaya', { name: name.trim() }) });
         }}
         placeholder={adding?.kind === 'payment' ? 'Jaise: HDFC Credit Card' : 'Jaise: Gym'}
         title={adding?.kind === 'payment' ? 'Naya payment source' : 'Nayi category'}

@@ -17,11 +17,13 @@ import { budgetProgress, remainingText } from '../../features/budget/budgetProgr
 import { useCatalog } from '../../features/catalog/catalogStore';
 import { subscribeToEntryChanges } from '../../features/entries/entryEvents';
 import type { RootStackParamList } from '../../navigation/types';
+import { useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { formatRupees } from '../../utils/money';
 import { currentMonthKey, monthLabel, monthRange } from '../home/monthSummary';
 
 export function BudgetScreen() {
+  useLanguage(); // re-render so amounts such as "bacha" follow the language
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const catalog = useCatalog();

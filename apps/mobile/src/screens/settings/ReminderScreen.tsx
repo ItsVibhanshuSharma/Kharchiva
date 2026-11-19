@@ -16,6 +16,7 @@ import {
   type ReminderSettings,
 } from '../../features/reminder/reminder';
 import type { RootStackParamList } from '../../navigation/types';
+import { t as translateNow } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 
 export function ReminderScreen() {
@@ -45,7 +46,7 @@ export function ReminderScreen() {
       }
       setSettings({ enabled: true, hour, minute });
       const label = REMINDER_TIMES.find(item => item.hour === hour && item.minute === minute)?.label ?? `${hour}:${String(minute).padStart(2, '0')}`;
-      showSnackbar({ message: `Roz ${label} par yaad dilayenge` });
+      showSnackbar({ message: translateNow('Roz {time} par yaad dilayenge', { time: label }) });
     } catch {
       showSnackbar({ tone: 'error', message: 'Reminder set nahi ho paya. Phir try karo.' });
     } finally {

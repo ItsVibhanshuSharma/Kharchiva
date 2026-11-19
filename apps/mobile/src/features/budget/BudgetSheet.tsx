@@ -7,6 +7,7 @@ import { Text } from '../../components/Text';
 import { Check, Trash2, X } from '../../components/icons';
 import { TOTAL_BUDGET, type Budget } from '../../database/repositories/CatalogRepository';
 import { parseRupeesToPaise } from '../../screens/expenses/expenseInputUtils';
+import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { categoryNames, removeBudget, setBudget, useCatalog } from '../catalog/catalogStore';
 import { budgetLabel } from './budgetProgress';
@@ -19,6 +20,7 @@ export type BudgetSheetProps = {
 };
 
 export function BudgetSheet({ visible, editing, onClose }: BudgetSheetProps) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const catalog = useCatalog();
   const [category, setCategory] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function BudgetSheet({ visible, editing, onClose }: BudgetSheetProps) {
     setSaving(true);
     try {
       await setBudget(category, limitPaise);
-      showSnackbar({ message: `${budgetLabel(category)} budget save ho gaya` });
+      showSnackbar({ message: translateNow('{label} budget save ho gaya', { label: translateNow(budgetLabel(category)) }) });
       onClose();
     } catch {
       setError('Save nahi ho paya. Phir try karo.');
@@ -62,10 +64,10 @@ export function BudgetSheet({ visible, editing, onClose }: BudgetSheetProps) {
 
   const remove = () => {
     if (!editing) return;
-    Alert.alert(`${budgetLabel(editing.category)} budget hatayein?`, 'Aapki entries par koi asar nahi padega.', [
-      { text: 'Rehne do', style: 'cancel' },
+    Alert.alert(t('{label} budget hatayein?', { label: t(budgetLabel(editing.category)) }), t('Aapki entries par koi asar nahi padega.'), [
+      { text: t('Rehne do'), style: 'cancel' },
       {
-        text: 'Hatao',
+        text: t('Hatao'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -87,7 +89,7 @@ export function BudgetSheet({ visible, editing, onClose }: BudgetSheetProps) {
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <View style={styles.header}>
             <Text variant="heading" style={styles.title}>
-              {editing ? `${budgetLabel(editing.category)} budget` : 'Naya budget'}
+              {editing ? t('{label} budget', { label: t(budgetLabel(editing.category)) }) : 'Naya budget'}
             </Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Close budget" hitSlop={10} onPress={onClose} style={styles.closeButton}>
               <X color={colors.textMuted} size={20} />

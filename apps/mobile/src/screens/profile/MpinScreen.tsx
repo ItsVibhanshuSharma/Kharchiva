@@ -13,6 +13,7 @@ import { getMpinStore } from '../../features/mpin/getMpinStore';
 import { setMpinEnabled } from '../../features/mpin/mpinStatus';
 import { MPIN_LENGTH, type MpinStore } from '../../features/mpin/mpinStore';
 import type { RootStackParamList } from '../../navigation/types';
+import { useLanguage } from '../../i18n/i18n';
 import { colors, spacing } from '../../theme';
 type Step = 'loading' | 'current' | 'menu' | 'new' | 'confirm';
 const COPY: Record<Exclude<Step, 'loading' | 'menu'>, { title: string; hint: string }> = {
@@ -21,6 +22,7 @@ const COPY: Record<Exclude<Step, 'loading' | 'menu'>, { title: string; hint: str
   confirm: { title: 'MPIN dobara daalo', hint: 'Wahi MPIN ek baar aur daalo.' },
 };
 export function MpinScreen() {
+  const { t } = useLanguage();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const [store, setStore] = useState<MpinStore | null>(null);
@@ -67,7 +69,7 @@ export function MpinScreen() {
       } else if (result.lockedUntil) {
         fail('Bahut galat koshish. Thodi der baad try karo.');
       } else {
-        fail(`Galat MPIN. ${result.attemptsLeft} koshish bachi hain.`);
+        fail(t('Galat MPIN. {n} koshish bachi hain.', { n: result.attemptsLeft }));
       }
     } else if (step === 'new') {
       setFirstEntry(value);
@@ -121,7 +123,7 @@ export function MpinScreen() {
         ) : step === 'loading' ? null : (
           <View style={styles.content}>
             <Text variant="title" style={styles.title}>{COPY[step].title}</Text>
-            <Text variant="body" style={styles.hint}>{COPY[step].hint}</Text>
+            <Text variant="body" style={styles.hint}>{step === 'new' ? t('{n} digit ka MPIN chuno. Ye app kholne par poocha jayega.', { n: MPIN_LENGTH }) : COPY[step].hint}</Text>
             <View style={styles.input}>
               <MpinInput value={code} onChange={onChange} hasError={Boolean(error)} disabled={busy} accessibilityLabel={COPY[step].title} />
             </View>

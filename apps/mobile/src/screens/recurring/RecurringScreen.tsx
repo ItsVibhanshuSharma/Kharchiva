@@ -14,11 +14,13 @@ import { subscribeToEntryChanges } from '../../features/entries/entryEvents';
 import { RecurringSheet } from '../../features/recurring/RecurringSheet';
 import { frequencyLabel } from '../../features/recurring/schedule';
 import type { RootStackParamList } from '../../navigation/types';
+import { useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { formatShortDate } from '../../utils/dates';
 import { formatRupees } from '../../utils/money';
 
 export function RecurringScreen() {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [items, setItems] = useState<RecurringItem[]>([]);
@@ -65,7 +67,7 @@ export function RecurringScreen() {
             <CategoryIcon category={item.category} type={item.kind} size={42} />
             <View style={styles.meta}>
               <Text variant="label" style={styles.name}>{item.name}</Text>
-              <Text variant="caption">{`${frequencyLabel(item.frequency)} · agli ${formatShortDate(item.nextDate)}${item.autoAdd ? '' : ' · poochhenge'}`}</Text>
+              <Text variant="caption">{t(item.autoAdd ? '{frequency} · agli {date}' : '{frequency} · agli {date} · poochhenge', { frequency: t(frequencyLabel(item.frequency)), date: formatShortDate(item.nextDate) })}</Text>
             </View>
             <Text variant="label" style={item.kind === 'income' ? styles.positive : styles.negative}>
               {`${item.kind === 'income' ? '+' : '−'}${formatRupees(item.amountPaise)}`}

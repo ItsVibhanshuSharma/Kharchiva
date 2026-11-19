@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { colors, radius, spacing, typography } from '../theme';
+import { useLanguage } from '../i18n/i18n';
 import { Text } from './Text';
 
 export type InputProps = TextInputProps & {
@@ -24,6 +25,7 @@ export function Input({
   placeholderTextColor = colors.textMuted,
   ...props
 }: InputProps) {
+  const { t } = useLanguage();
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? (
@@ -39,6 +41,7 @@ export function Input({
         ]}
         placeholderTextColor={placeholderTextColor}
         {...props}
+        placeholder={typeof props.placeholder === 'string' ? t(props.placeholder) : props.placeholder}
       />
       {error ? (
         <Text variant="caption" style={styles.errorText}>

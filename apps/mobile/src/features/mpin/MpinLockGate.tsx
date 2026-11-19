@@ -4,12 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MpinInput } from '../../components/MpinInput';
 import { Screen } from '../../components/Screen';
 import { Text } from '../../components/Text';
+import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { colors, spacing } from '../../theme';
 import { getMpinStore } from './getMpinStore';
 import { MPIN_LENGTH, type MpinStore } from './mpinStore';
 type GateState = 'checking' | 'locked' | 'open';
 /** Asks for the MPIN when the app starts, if one was set from Profile. */
 export function MpinLockGate({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const [state, setState] = useState<GateState>('checking');
   const [store, setStore] = useState<MpinStore | null>(null);
   const [code, setCode] = useState('');
@@ -62,7 +64,7 @@ export function MpinLockGate({ children }: { children: React.ReactNode }) {
         setLockedUntil(result.lockedUntil);
         setMessage('');
       } else {
-        setMessage(`Galat MPIN. ${result.attemptsLeft} koshish bachi hain.`);
+        setMessage(translateNow('Galat MPIN. {n} koshish bachi hain.', { n: result.attemptsLeft }));
       }
     },
     [store],
@@ -84,7 +86,7 @@ export function MpinLockGate({ children }: { children: React.ReactNode }) {
     <Screen style={[styles.screen, { paddingTop: Math.max(insets.top, spacing.md) + spacing.xxxl }]}>
       <Text variant="title" style={styles.title}>MPIN daalo</Text>
       <Text variant="body" style={styles.subtitle}>
-        {isLocked ? `Bahut galat koshish. ${secondsLeft} second baad try karo.` : 'Kharchiva kholne ke liye apna 4 digit MPIN daalo.'}
+        {isLocked ? t('Bahut galat koshish. {n} second baad try karo.', { n: secondsLeft }) : 'Kharchiva kholne ke liye apna 4 digit MPIN daalo.'}
       </Text>
       <View style={styles.input}>
         <MpinInput value={code} onChange={onChange} hasError={Boolean(message)} disabled={isLocked} accessibilityLabel="Enter MPIN" />

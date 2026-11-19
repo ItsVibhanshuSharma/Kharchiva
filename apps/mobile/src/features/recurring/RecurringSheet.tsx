@@ -9,6 +9,7 @@ import { CalendarDays, Check, Trash2, X } from '../../components/icons';
 import { getRecurringRepository } from '../../database/recurringRepository';
 import type { RecurringFrequency, RecurringItem } from '../../database/repositories/RecurringRepository';
 import { dateForExpenseInput, parseRupeesToPaise } from '../../screens/expenses/expenseInputUtils';
+import { t as translateNow, useLanguage } from '../../i18n/i18n';
 import { colors, radius, spacing } from '../../theme';
 import { formatShortDate } from '../../utils/dates';
 import { categoryNames, useCatalog } from '../catalog/catalogStore';
@@ -24,6 +25,7 @@ function addYear(date: string) {
 }
 
 export function RecurringSheet({ visible, editing, onClose }: Props) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const catalog = useCatalog();
   const today = dateForExpenseInput(new Date());
@@ -69,7 +71,7 @@ export function RecurringSheet({ visible, editing, onClose }: Props) {
       // A first date of today should show up right away, not on the next app open.
       const added = await processRecurring().catch(() => []);
       notifyEntriesChanged();
-      showSnackbar({ message: added.length ? `${name.trim()} save ho gaya, aaj ki entry bhi jud gayi` : `${name.trim()} save ho gaya` });
+      showSnackbar({ message: added.length ? translateNow('{name} save ho gaya, aaj ki entry bhi jud gayi', { name: name.trim() }) : translateNow('{name} save ho gaya', { name: name.trim() }) });
       onClose();
     } catch (failure) {
       setError(failure instanceof Error && failure.message ? failure.message : 'Save nahi ho paya. Phir try karo.');
@@ -80,17 +82,17 @@ export function RecurringSheet({ visible, editing, onClose }: Props) {
 
   const remove = () => {
     if (!editing) return;
-    Alert.alert(`${editing.name} band karein?`, 'Aage se ye apne aap nahi judega. Pehle judi entries waise hi rahengi.', [
-      { text: 'Rehne do', style: 'cancel' },
+    Alert.alert(t('{name} band karein?', { name: editing.name }), t('Aage se ye apne aap nahi judega. Pehle judi entries waise hi rahengi.'), [
+      { text: t('Rehne do'), style: 'cancel' },
       {
-        text: 'Band karo',
+        text: t('Band karo'),
         style: 'destructive',
         onPress: async () => {
           try {
             const repository = await getRecurringRepository();
             await repository.remove(editing.id);
             notifyEntriesChanged();
-            showSnackbar({ message: `${editing.name} band kar diya` });
+            showSnackbar({ message: translateNow('{name} band kar diya', { name: editing.name }) });
             onClose();
           } catch {
             showSnackbar({ tone: 'error', message: 'Band nahi ho paya. Phir try karo.' });
@@ -136,7 +138,7 @@ export function RecurringSheet({ visible, editing, onClose }: Props) {
               accessibilityLabel="Recurring name"
               maxLength={30}
               onChangeText={value => { setName(value); setError(''); }}
-              placeholder={kind === 'income' ? 'Jaise: Salary' : 'Jaise: Rent, Netflix, EMI'}
+              placeholder={t(kind === 'income' ? 'Jaise: Salary' : 'Jaise: Rent, Netflix, EMI')}
               placeholderTextColor={colors.textMuted}
               style={styles.input}
               value={name}
@@ -171,7 +173,7 @@ export function RecurringSheet({ visible, editing, onClose }: Props) {
             </ScrollView>
 
             {editing ? (
-              <Text variant="caption">{`${frequencyLabel(editing.frequency)} · agli date ${formatShortDate(editing.nextDate)}`}</Text>
+              <Text variant="caption">{t('{frequency} · agli date {date}', { frequency: t(frequencyLabel(editing.frequency)), date: formatShortDate(editing.nextDate) })}</Text>
             ) : (
               <>
                 <View style={styles.chips}>
@@ -190,7 +192,7 @@ export function RecurringSheet({ visible, editing, onClose }: Props) {
                 </View>
                 <Pressable accessibilityRole="button" accessibilityLabel="Choose first date" onPress={() => setPicking(true)} style={styles.dateField}>
                   <CalendarDays color={colors.primary} size={18} />
-                  <Text variant="label" style={styles.text}>{`Pehli baar: ${formatShortDate(startDate)}`}</Text>
+                  <Text variant="label" style={styles.text}>{t('Pehli baar: {date}', { date: formatShortDate(startDate) })}</Text>
                 </Pressable>
               </>
             )}
