@@ -39,6 +39,14 @@ describe('App navigator foundation', () => {
       'Reminder',
       'Recurring',
       'Language',
+      'Splits',
+      'SplitPerson',
+      'Groups',
+      'CreateGroup',
+      'GroupDetail',
+      'AddGroupExpense',
+      'GroupMembers',
+      'JoinGroup',
     ]);
   });
 

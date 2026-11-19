@@ -14,6 +14,15 @@ import { ManageListsScreen } from '../screens/settings/ManageListsScreen';
 import { ReminderScreen } from '../screens/settings/ReminderScreen';
 import { LanguageScreen } from '../screens/settings/LanguageScreen';
 import { RecurringScreen } from '../screens/recurring/RecurringScreen';
+import { SplitPersonScreen } from '../screens/split/SplitPersonScreen';
+import { SplitsScreen } from '../screens/split/SplitsScreen';
+import { AddGroupExpenseScreen } from '../screens/groups/AddGroupExpenseScreen';
+import { CreateGroupScreen } from '../screens/groups/CreateGroupScreen';
+import { GroupDetailScreen } from '../screens/groups/GroupDetailScreen';
+import { GroupMembersScreen } from '../screens/groups/GroupMembersScreen';
+import { GroupsScreen } from '../screens/groups/GroupsScreen';
+import { JoinGroupScreen } from '../screens/groups/JoinGroupScreen';
+import { navigationRef, onNavigationReady, useInviteLinks } from './linking';
 import { StatementScreen } from '../screens/statement/StatementScreen';
 import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { RootStackParamList } from './types';
@@ -21,8 +30,9 @@ import { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
+  useInviteLinks();
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} onReady={onNavigationReady}>
       <Stack.Navigator initialRouteName="Welcome">
         <Stack.Screen
           name="Welcome"
@@ -79,6 +89,14 @@ export function AppNavigator() {
         <Stack.Screen name="Reminder" component={ReminderScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Recurring" component={RecurringScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Language" component={LanguageScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Splits" component={SplitsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SplitPerson" component={SplitPersonScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Groups" component={GroupsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="CreateGroup" component={CreateGroupScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="GroupDetail" component={GroupDetailScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AddGroupExpense" component={AddGroupExpenseScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="GroupMembers" component={GroupMembersScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="JoinGroup" component={JoinGroupScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

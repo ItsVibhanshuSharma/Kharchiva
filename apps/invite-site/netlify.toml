@@ -1,0 +1,11 @@
+# Temporary host for Kharchiva invite links. Deploy this folder as a static site (Netlify, Firebase Hosting, or any static host).
+# /join/<code> always serves join.html, which reads the code from the URL.
+[[redirects]]
+  from = "/join/*"
+  to = "/join.html"
+  status = 200
+
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"

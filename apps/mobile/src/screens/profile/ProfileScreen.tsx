@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAVIGATION_CONTENT_INSET, BottomNavigation } from '../../components/BottomNavigation';
 import { Screen } from '../../components/Screen';
 import { Text } from '../../components/Text';
-import { Bell, ChevronRight, EyeOff, FileText, Globe, KeyRound, LogOut, Pencil, Repeat, Smartphone, Tags, Target } from '../../components/icons';
+import { Bell, ChevronRight, EyeOff, FileText, Globe, KeyRound, LogOut, Pencil, Repeat, Smartphone, Tags, Target, Users } from '../../components/icons';
 import { useMpinEnabled } from '../../features/mpin/mpinStatus';
 import { LANGUAGES } from '../../i18n/languages';
 import { useLanguage } from '../../i18n/i18n';
@@ -120,6 +120,36 @@ export function ProfileScreen() {
           <View style={styles.identity}>
             <Text variant="label" style={styles.rowTitle}>Roz ka reminder</Text>
             <Text variant="caption">Raat ko ek baar "aaj koi kharcha hua?"</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Splitwise groups"
+          onPress={() => navigation.navigate('Groups')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Users color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>{'Splitwise (groups)'}</Text>
+            <Text variant="caption">{'Trip ya flat ka hisaab, sabke saath'}</Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Friends and split"
+          onPress={() => navigation.navigate('Splits')}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        >
+          <View style={styles.infoIcon}>
+            <Users color={colors.primary} size={20} />
+          </View>
+          <View style={styles.identity}>
+            <Text variant="label" style={styles.rowTitle}>Dosto ka hisaab</Text>
+            <Text variant="caption">Kaun kisko kitna dega</Text>
           </View>
           <ChevronRight color={colors.textMuted} size={20} />
         </Pressable>

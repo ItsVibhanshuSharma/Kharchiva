@@ -16,6 +16,8 @@ import { VoiceEntrySheet } from '../../features/voice/VoiceEntrySheet';
 import { BudgetHomeCard } from '../../features/budget/BudgetHomeCard';
 import { CatchUpCard } from '../../features/catchup/CatchUpCard';
 import { RecurringDueCard } from '../../features/recurring/RecurringDueCard';
+import { SplitHomeCard } from '../../features/split/SplitHomeCard';
+import { GroupsHomeCard } from '../../features/groups/GroupsHomeCard';
 import { CategorySpendCard } from '../../features/insights/CategorySpendCard';
 import { useCatalog } from '../../features/catalog/catalogStore';
 import type { LedgerTransaction } from '../../database/models/transaction';
@@ -296,6 +298,10 @@ export function HomeScreen() {
         <CatchUpCard onAdd={date => navigation.navigate('AddExpense', { type: 'expense', date })} refreshKey={refreshKey} />
         {/* Shows only when a recurring item set to "pucho" is due. */}
         <RecurringDueCard refreshKey={refreshKey} />
+        {/* Shows only while a friend owes the user, or the user owes a friend. */}
+        <SplitHomeCard onOpen={() => navigation.navigate('Splits')} />
+        {/* Shows only once the user is in a Splitwise group. */}
+        <GroupsHomeCard onOpen={() => navigation.navigate('Groups')} />
         {/* Budgets are opt-in: this shows only after the user creates one. */}
         {!isYear && isSameMonth(month, thisMonth) ? (
           <BudgetHomeCard
