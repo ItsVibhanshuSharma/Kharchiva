@@ -66,9 +66,9 @@ export function SplitsScreen() {
                 <View style={styles.avatar}><Text style={styles.avatarText}>{initialsOf(person.name)}</Text></View>
                 <View style={styles.meta}>
                   <Text variant="label" numberOfLines={1} style={styles.name}>{person.name}</Text>
-                  <Text variant="caption">{value > 0 ? 'Aapko milna hai' : value < 0 ? 'Aapko dena hai' : 'Hisaab barabar hai'}</Text>
+                  <Text variant="caption">{0 < value ? 'Aapko milna hai' : value < 0 ? 'Aapko dena hai' : 'Hisaab barabar hai'}</Text>
                 </View>
-                <Text accessibilityLabel={`${person.name} balance`} variant="label" style={value > 0 ? styles.positive : value < 0 ? styles.negative : styles.zero}>
+                <Text accessibilityLabel={`${person.name} balance`} variant="label" style={0 < value ? styles.positive : value < 0 ? styles.negative : styles.zero}>
                   {formatRupees(value)}
                 </Text>
                 <ChevronRight color={colors.textMuted} size={18} />

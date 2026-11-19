@@ -69,8 +69,8 @@ export function SplitPersonScreen({ route }: Props = {}) {
       <AppHeader title={name || 'Dosto ka hisaab'} showBack onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.xl }]} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <Text variant="caption">{balance > 0 ? t('{name} aapko dega', { name }) : balance < 0 ? t('Aapko {name} ko dena hai', { name }) : 'Hisaab barabar hai'}</Text>
-          <Text accessibilityLabel="Balance" variant="title" style={[styles.heroAmount, balance > 0 ? styles.positive : balance < 0 ? styles.negative : styles.zero]}>
+          <Text variant="caption">{0 < balance ? t('{name} aapko dega', { name }) : balance < 0 ? t('Aapko {name} ko dena hai', { name }) : 'Hisaab barabar hai'}</Text>
+          <Text accessibilityLabel="Balance" variant="title" style={[styles.heroAmount, 0 < balance ? styles.positive : balance < 0 ? styles.negative : styles.zero]}>
             {formatRupees(balance)}
           </Text>
         </View>
@@ -126,7 +126,7 @@ export function SplitPersonScreen({ route }: Props = {}) {
                     }`}
                   </Text>
                 </View>
-                <Text variant="label" style={item.kind === 'settlement' ? styles.zero : item.effectPaise > 0 ? styles.positive : styles.negative}>
+                <Text variant="label" style={item.kind === 'settlement' ? styles.zero : 0 < item.effectPaise ? styles.positive : styles.negative}>
                   {formatSignedRupees(item.effectPaise)}
                 </Text>
               </Pressable>
