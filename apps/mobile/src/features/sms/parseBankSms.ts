@@ -52,6 +52,7 @@ const CATEGORY_HINTS: Array<[RegExp, string]> = [
   [/swiggy|zomato|restaurant|cafe|dominos|pizza|mcdonald|kfc|starbucks|food/i, 'Food & Dining'],
   [/bigbasket|blinkit|zepto|dmart|grocer|instamart|jiomart/i, 'Groceries'],
   [/petrol|fuel|iocl|bpcl|hpcl|indianoil|shell/i, 'Fuel'],
+  [/cigarette|tobacco|\bpaan\b|\bbeedi\b|\bbidi\b/i, 'Sutta'],
   [/uber|ola\b|rapido|irctc|redbus|makemytrip|metro|railway|fastag|indigo|airline/i, 'Travel'],
   [/amazon|flipkart|myntra|ajio|meesho|nykaa/i, 'Shopping'],
   [/electric|bescom|power|water|gas|broadband|airtel|jio|vodafone|vi\b|recharge|bill/i, 'Bills'],

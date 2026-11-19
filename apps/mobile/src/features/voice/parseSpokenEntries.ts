@@ -184,6 +184,7 @@ type CategoryRule = { category: string; words: string[] };
 
 const EXPENSE_CATEGORIES: CategoryRule[] = [
   { category: 'Fuel', words: ['petrol', 'diesel', 'fuel', 'cng'] },
+  { category: 'Sutta', words: ['sutta', 'sutte', 'cigarette', 'cigarettes', 'cigar', 'bidi', 'beedi', 'tobacco', 'tambaku', 'gutkha', 'vape'] },
   { category: 'Food & Dining', words: ['food', 'khana', 'khaana', 'lunch', 'dinner', 'breakfast', 'nashta', 'swiggy', 'zomato', 'restaurant', 'hotel', 'pizza', 'burger', 'biryani', 'chai', 'tea', 'coffee', 'snack', 'snacks', 'momos', 'dhaba'] },
   { category: 'Groceries', words: ['grocery', 'groceries', 'sabzi', 'sabji', 'vegetables', 'vegetable', 'fruits', 'doodh', 'milk', 'kirana', 'ration', 'blinkit', 'zepto', 'bigbasket', 'instamart', 'atta', 'dmart'] },
   { category: 'Travel', words: ['travel', 'cab', 'uber', 'ola', 'rapido', 'auto', 'rickshaw', 'bus', 'train', 'metro', 'flight', 'ticket', 'taxi', 'toll', 'parking'] },

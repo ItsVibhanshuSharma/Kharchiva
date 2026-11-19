@@ -166,6 +166,11 @@ describe('parseSpokenEntries', () => {
     });
   });
 
+  it('files cigarettes and tobacco under Sutta', () => {
+    for (const phrase of ['50 sutta', 'cigarette 180', '20 ki bidi', 'tobacco 100 kal']) {
+      expect(parse(phrase).entries[0]?.category).toBe('Sutta');
+    }
+  });
   it('only produces categories the add form offers', () => {
     expect(EXPENSE_CATEGORIES).toEqual(expect.arrayContaining(PARSER_CATEGORIES.expense));
     expect(INCOME_CATEGORIES).toEqual(expect.arrayContaining(PARSER_CATEGORIES.income));

@@ -87,7 +87,11 @@ export function categoryNames(catalog: CatalogState, type: ListEntryType): strin
   const builtIn: readonly string[] = (type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).filter(
     name => !isDefaultHidden(catalog, type, name),
   );
-  const custom = catalog.customCategories.filter(item => item.type === type).map(item => item.name);
+  // A category the user made before it became built-in (e.g. their own "Sutta") is not listed twice.
+  const builtInKeys = new Set(builtIn.map(name => name.toLowerCase()));
+  const custom = catalog.customCategories
+    .filter(item => item.type === type && !builtInKeys.has(item.name.toLowerCase()))
+    .map(item => item.name);
   // "Other" stays last so the user's own categories sit next to the built-in ones.
   const withoutOther = builtIn.filter(name => name !== 'Other');
   return [...withoutOther, ...custom, ...(builtIn.includes('Other') ? ['Other'] : [])];

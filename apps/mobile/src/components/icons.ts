@@ -9,6 +9,7 @@ export { default as Bell } from 'lucide-react-native/icons/bell';
 export { default as Briefcase } from 'lucide-react-native/icons/briefcase';
 export { default as CalendarDays } from 'lucide-react-native/icons/calendar-days';
 export { default as Car } from 'lucide-react-native/icons/car';
+export { default as Cigarette } from 'lucide-react-native/icons/cigarette';
 export { default as ChartColumn } from 'lucide-react-native/icons/chart-column';
 export { default as Check } from 'lucide-react-native/icons/check';
 export { default as ChevronLeft } from 'lucide-react-native/icons/chevron-left';

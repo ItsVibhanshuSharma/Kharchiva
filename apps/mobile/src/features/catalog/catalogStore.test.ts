@@ -37,6 +37,13 @@ describe('catalogStore', () => {
     expect(categoryNames(getCatalog(), 'income')).not.toContain('Gym');
   });
 
+  it('offers the built-in Sutta once, even if the user had made their own before it existed', async () => {
+    const repository = await mockGetter();
+    await repository.addCategory({ name: 'sutta', type: 'expense', emoji: '🚬' });
+    await loadCatalog(true);
+    expect(categoryNames(getCatalog(), 'expense').filter(name => name.toLowerCase() === 'sutta')).toEqual(['Sutta']);
+    await expect(addCustomCategory({ name: 'Sutta', type: 'expense' })).rejects.toThrow('pehle se hai');
+  });
   it('refuses duplicates of built-in or existing names, ignoring case', async () => {
     await expect(addCustomCategory({ name: 'fuel', type: 'expense' })).rejects.toThrow('"fuel" pehle se hai.');
     await addPaymentSource('HDFC Credit Card');

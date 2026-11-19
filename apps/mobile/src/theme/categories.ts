@@ -1,6 +1,7 @@
 import {
   Briefcase,
   Car,
+  Cigarette,
   CircleEllipsis,
   Coffee,
   Film,
@@ -24,7 +25,7 @@ import {
 
 /** Categories offered in the add form. Voice entry must only produce names from these lists. */
 export const EXPENSE_CATEGORIES = [
-  'Food & Dining', 'Groceries', 'Fuel', 'Travel', 'Shopping', 'Bills', 'Rent', 'Health', 'Entertainment', 'Other',
+  'Food & Dining', 'Groceries', 'Fuel', 'Travel', 'Shopping', 'Bills', 'Rent', 'Health', 'Entertainment', 'Sutta', 'Other',
 ] as const;
 export const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Business', 'Bonus', 'Interest', 'Other'] as const;
 /** Built-in payment methods; users can add their own (e.g. "HDFC Credit Card"). */
@@ -45,6 +46,7 @@ type Rule = { match: RegExp; look: CategoryLook };
 // Order matters: the first matching rule wins. Matching is by name so custom
 // and legacy categories ("Food", "Food & Dining", "Petrol") still get a look.
 const expenseRules: Rule[] = [
+  { match: /sutta|cigar|tobacco|bidi|beedi|gutkha|vape|smok/i, look: { Icon: Cigarette, color: '#6B5B4B', tint: '#EFEAE4', emoji: '🚬' } },
   { match: /food|dining|restaurant|lunch|dinner|swiggy|zomato/i, look: { Icon: Utensils, color: '#E8590C', tint: '#FFE8D9', emoji: '🍔' } },
   { match: /coffee|tea|chai|snack/i, look: { Icon: Coffee, color: '#9C6644', tint: '#F5E6DA', emoji: '☕' } },
   { match: /grocer/i, look: { Icon: ShoppingCart, color: '#2B8A3E', tint: '#DDF5E3', emoji: '🛒' } },
